@@ -46,9 +46,42 @@ public class MatchingEngine {
         order.setId(counter.getAndIncrement());
         double pendingAmount = order.getAmount();
         List<Trade> trades = new ArrayList<>();
+
+
+
         if (order.getDirection() == OrderDirection.SELL) {
             log.info("Adding order to SELL queue");
-            sellQueue.add(order);
+            if (!buyQueue.isEmpty()) {
+                Order nextBuy = buyQueue.peek();
+                if (nextBuy.getPrice() < order.getPrice()) {
+                    sellQueue.add(order);
+                } else {
+                    while (nextBuy.getPrice() >= order.getPrice() && pendingAmount > 0) {
+
+                        nextBuy = buyQueue.poll();
+                        assert nextBuy != null;//already peaked - false positive
+                        double tradeAmount = nextBuy.getAmount();
+
+                        if (pendingAmount < tradeAmount) {
+                            tradeAmount = pendingAmount;
+                            nextBuy.setAmount(nextBuy.getAmount() - tradeAmount);
+                            buyQueue.add(order);// keep it case it's larger
+                        }
+                        Trade currentTrade = Trade.builder()
+                                .orderId(nextBuy.getId())
+                                .price(nextBuy.getPrice())
+                                .amount(tradeAmount)
+                                .build();
+                        updateArchive(order.getId(), nextBuy.getId(), tradeAmount, order.getPrice());
+
+                        trades.add(currentTrade);
+
+                        pendingAmount -= tradeAmount;
+                    }
+                }
+            } else {
+                buyQueue.add(order);
+            }
         } else {
             log.info("Adding order to BUY queue");
             if (!sellQueue.isEmpty()) {
