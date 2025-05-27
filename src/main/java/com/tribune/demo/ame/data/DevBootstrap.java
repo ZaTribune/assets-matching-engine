@@ -10,7 +10,6 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
-import java.util.PriorityQueue;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -26,15 +25,18 @@ public class DevBootstrap {
 
     @PostConstruct
     public void init() {
+        OrderBook orderBook = matchingEngine.newOrderBook("BTC");
+
         AtomicLong counter = matchingEngine.getCounter();
 
-        PriorityBlockingQueue<Order> sellQueue = matchingEngine.getSellQueue();
-        PriorityBlockingQueue<Order> buyQueue = matchingEngine.getBuyQueue();
+        PriorityBlockingQueue<Order> sellQueue = orderBook.getSellQueue();
+        PriorityBlockingQueue<Order> buyQueue = orderBook.getBuyQueue();
 
 
         LocalDateTime now = LocalDateTime.now();
 
         Order o1 = Order.builder()
+                .asset("BTC")
                 .id(counter.getAndIncrement())
                 .direction(OrderDirection.SELL)
                 .time(now)
@@ -42,8 +44,9 @@ public class DevBootstrap {
                 .price(10.05)
                 .build();
         sellQueue.add(o1);
-        matchingEngine.insertToArchive(o1);
+        orderBook.insertToArchive(o1);
         Order o2 = Order.builder()
+                .asset("BTC")
                 .id(counter.getAndIncrement())
                 .direction(OrderDirection.SELL)
                 .time(now.plusMinutes(2))
@@ -51,8 +54,9 @@ public class DevBootstrap {
                 .price(10.04)
                 .build();
         sellQueue.add(o2);
-        matchingEngine.insertToArchive(o2);
+        orderBook.insertToArchive(o2);
         Order o3 = Order.builder()
+                .asset("BTC")
                 .id(counter.getAndIncrement())
                 .direction(OrderDirection.SELL)
                 .time(now.plusMinutes(3))
@@ -60,8 +64,9 @@ public class DevBootstrap {
                 .price(10.05)
                 .build();
         sellQueue.add(o3);
-        matchingEngine.insertToArchive(o3);
+        orderBook.insertToArchive(o3);
         Order o4 = Order.builder()
+                .asset("BTC")
                 .id(counter.getAndIncrement())
                 .direction(OrderDirection.BUY)
                 .time(now.plusMinutes(5))
@@ -69,8 +74,9 @@ public class DevBootstrap {
                 .price(10.00)
                 .build();
         buyQueue.add(o4);
-        matchingEngine.insertToArchive(o4);
+        orderBook.insertToArchive(o4);
         Order o5 = Order.builder()
+                .asset("BTC")
                 .id(counter.getAndIncrement())
                 .direction(OrderDirection.BUY)
                 .time(now.plusMinutes(6))
@@ -78,8 +84,9 @@ public class DevBootstrap {
                 .price(10.02)
                 .build();
         buyQueue.add(o5);
-        matchingEngine.insertToArchive(o5);
+        orderBook.insertToArchive(o5);
         Order o6 = Order.builder()
+                .asset("BTC")
                 .id(counter.getAndIncrement())
                 .direction(OrderDirection.BUY)
                 .time(now.plusMinutes(10))
@@ -87,7 +94,7 @@ public class DevBootstrap {
                 .price(10.00)
                 .build();
         buyQueue.add(o6);
-        matchingEngine.insertToArchive(o6);
+        orderBook.insertToArchive(o6);
 
 //        while (sellQueue.peek() != null) {
 //            Order order = sellQueue.poll();

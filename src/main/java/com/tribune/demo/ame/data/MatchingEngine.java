@@ -1,176 +1,97 @@
 package com.tribune.demo.ame.data;
 
 
-import com.tribune.demo.ame.model.*;
+import com.tribune.demo.ame.event.CustomSpringEvent;
+import com.tribune.demo.ame.event.EventBus;
+import com.tribune.demo.ame.event.EventSubscriber;
+import com.tribune.demo.ame.event.EventType;
+import com.tribune.demo.ame.model.OrderResponse;
+import com.tribune.demo.ame.model.Trade;
+import com.tribune.demo.ame.model.UpdateCounterpart;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.web.server.ResponseStatusException;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
 
+///  This will hold all orderBooks for all assets
 
+@Getter
 @Slf4j
 @Component
-public class MatchingEngine {
-
-    @Getter
-    private final AtomicLong counter = new AtomicLong(1);
+public class MatchingEngine implements  EventSubscriber {
 
     // on archive, initial amount is constant
     private final Map<Long, OrderResponse> archive = new ConcurrentHashMap<>();
-
-    // I need the least selling prices to come first
-    private final Comparator<Order> comparator1 = Comparator.comparingDouble(Order::getPrice)//asc
-            .thenComparing(Order::getTime);//asc
-
-    // I need the highest buying prices to come first
-    private final Comparator<Order> comparator2 = Comparator.comparingDouble(Order::getPrice).reversed()//desc
-            .thenComparing(Order::getTime).reversed();//desc
-
-    // I used PriorityQueue with synchronized methods but then searched the web and found this one to be a better alternative
+    private final EventBus eventBus;
     @Getter
-    private final PriorityBlockingQueue<Order> sellQueue = new PriorityBlockingQueue<>(1, comparator1);
+    private final AtomicLong counter = new AtomicLong(1);
 
-    @Getter
-    private final PriorityBlockingQueue<Order> buyQueue = new PriorityBlockingQueue<>(1, comparator2);
+    @Autowired
+    public MatchingEngine(EventBus eventBus) {
+        this.eventBus = eventBus;
+        eventBus.subscribe(EventType.INSERT_ORDER,this);
+        eventBus.subscribe(EventType.UPDATE_ORDER,this);
+        eventBus.subscribe(EventType.UPDATE_COUNTERPART,this);
 
+    }
 
-    public OrderResponse addOrder(Order order) {
-        order.setId(counter.getAndIncrement());
-        double pendingAmount = order.getAmount();
-        List<Trade> trades = new ArrayList<>();
+    private final Map<String, OrderBook> orderBooks = new HashMap<>();
 
+    public OrderBook getOrderBook(String name) {
+        OrderBook book = orderBooks.get(name);
+        if (book == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "OrderBook not found: " + name);
+        }
+        return book;
+    }
 
+    public OrderBook newOrderBook(String name) {
+        OrderBook orderBook = new OrderBook(name,eventBus, counter);
+        orderBooks.put(name, orderBook);
+        return orderBook;
+    }
 
-        if (order.getDirection() == OrderDirection.SELL) {
-            log.info("Adding order to SELL queue");
-            if (!buyQueue.isEmpty()) {
-                Order nextBuy = buyQueue.peek();
-                if (nextBuy.getPrice() < order.getPrice()) {
-                    sellQueue.add(order);
-                } else {
-                    while (nextBuy.getPrice() >= order.getPrice() && pendingAmount > 0) {
+    public void addOrderBook(String name, OrderBook orderBook) {
+        orderBooks.put(name, orderBook);
+    }
 
-                        nextBuy = buyQueue.poll();
-                        assert nextBuy != null;//already peaked - false positive
-                        double tradeAmount = nextBuy.getAmount();
+    public boolean deleteOrderBook(String name) {
+        return orderBooks.remove(name) != null;
+    }
 
-                        if (pendingAmount < tradeAmount) {
-                            tradeAmount = pendingAmount;
-                            nextBuy.setAmount(nextBuy.getAmount() - tradeAmount);
-                            buyQueue.add(order);// keep it case it's larger
-                        }
-                        Trade currentTrade = Trade.builder()
-                                .orderId(nextBuy.getId())
-                                .price(nextBuy.getPrice())
-                                .amount(tradeAmount)
-                                .build();
-                        updateArchive(order.getId(), nextBuy.getId(), tradeAmount, order.getPrice());
+    @Override
+    public void onEvent(CustomSpringEvent event) {
+        log.info("Received an event: {}", event.getMessage());
+        if (event.getEventType().equals(EventType.INSERT_ORDER)) {
+            OrderResponse o = (OrderResponse) event.getSource();
+            archive.put(o.getId(), o);
+        }else if (event.getEventType().equals(EventType.UPDATE_ORDER)) {
+            OrderResponse o = (OrderResponse) event.getSource();
+            archive.put(o.getId(), o);
+        }else if (event.getEventType().equals(EventType.UPDATE_COUNTERPART)) {
+            UpdateCounterpart uc = (UpdateCounterpart) event.getSource();
 
-                        trades.add(currentTrade);
-
-                        pendingAmount -= tradeAmount;
-                    }
-                }
-            } else {
-                buyQueue.add(order);
-            }
-        } else {
-            log.info("Adding order to BUY queue");
-            if (!sellQueue.isEmpty()) {
-                Order nextSell = sellQueue.peek();
-                if (nextSell.getPrice() > order.getPrice()) {
-                    buyQueue.add(order);
-                } else {
-                    while (nextSell.getPrice() <= order.getPrice() && pendingAmount > 0) {
-
-                        nextSell = sellQueue.poll();
-                        assert nextSell != null;//already peaked - false positive
-                        double tradeAmount = nextSell.getAmount();
-
-                        if (pendingAmount < tradeAmount) {
-                            tradeAmount = pendingAmount;
-                            nextSell.setAmount(nextSell.getAmount() - tradeAmount);
-                            sellQueue.add(order);// keep it case it's larger
-                        }
-                        Trade currentTrade = Trade.builder()
-                                .orderId(nextSell.getId())
-                                .price(nextSell.getPrice())
-                                .amount(tradeAmount)
-                                .build();
-                        updateArchive(order.getId(), nextSell.getId(), tradeAmount, order.getPrice());
-
-                        trades.add(currentTrade);
-
-                        pendingAmount -= tradeAmount;
-                    }
-                }
-            } else {
-                buyQueue.add(order);
+            if (archive.containsKey(uc.getCounterPartId())) {
+                OrderResponse o = archive.get(uc.getCounterPartId());
+                Trade trade = Trade.builder()
+                        .orderId(uc.getTriggerId())
+                        .price(uc.getCounterpartPrice())
+                        .amount(uc.getCounterpartAmount())
+                        .build();
+                o.setPendingAmount(o.getAmount() - uc.getCounterpartAmount());
+                o.addTrade(trade);
             }
         }
-
-        OrderResponse response = OrderResponse.builder()
-                .id(order.getId())
-                .price(order.getPrice())
-                .asset(order.getAsset())
-                .direction(order.getDirection())
-                .time(LocalDateTime.now())
-                .amount(order.getAmount())
-                .pendingAmount(pendingAmount)
-                .trades(trades)
-                .build();
-        updateArchive(order.getId(), response);
-        System.out.println(sellQueue);
-        return response;
     }
 
-    private void updateArchive(Long id, OrderResponse response) {
-        archive.put(id, response);
-    }
-
-    public void insertToArchive(Order order) {
-
-        OrderResponse o = OrderResponse.builder()
-                .id(order.getId())
-                .price(order.getPrice())
-                .asset(order.getAsset())
-                .direction(order.getDirection())
-                .time(LocalDateTime.now())
-                .amount(order.getAmount())
-                .trades(new ArrayList<>())
-                .pendingAmount(order.getAmount())
-                .build();
-        archive.put(order.getId(), o);
-    }
-
-
-    public void updateArchive(Long triggerId, Long counterPartId, double counterpartAmount, double counterpartPrice) {
-        log.info("Updating archive for order {}", counterPartId);
-        if (archive.containsKey(counterPartId)) {
-            OrderResponse o = archive.get(counterPartId);
-            Trade trade = Trade.builder()
-                    .orderId(triggerId)
-                    .price(counterpartPrice)
-                    .amount(counterpartAmount)
-                    .build();
-            o.setPendingAmount(o.getAmount() - counterpartAmount);
-            o.addTrade(trade);
-        }
-
-    }
-
-    public Order findById(long id) {
-
+    public OrderResponse findById(long id) {
         return archive.get(id);
     }
-
-
 }
