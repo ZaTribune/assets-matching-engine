@@ -7,6 +7,7 @@ import com.tribune.demo.ame.data.OrderBook;
 import com.tribune.demo.ame.event.EventBusImpl;
 import com.tribune.demo.ame.model.Order;
 import com.tribune.demo.ame.model.OrderDirection;
+import com.tribune.demo.ame.model.OrderResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,6 +23,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -100,11 +102,40 @@ class OrderControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(order)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Validation Error"));;
+                .andExpect(jsonPath("$.message").value("Validation Error"));
     }
 
     @Test
-    void getOrder() {
+    void getOrder_whenSuccessful() throws Exception {
+        OrderResponse order = new OrderResponse();
+        order.setId(1L);
+        order.setPrice(10.0);
+        order.setAmount(5.0);
+        order.setDirection(OrderDirection.SELL);
+
+        when(matchingEngine.findById(1L)).thenReturn(order);
+
+        mockMvc.perform(get("/orders/1")
+                        .contentType(MediaType.APPLICATION_JSON))
+
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1L));;
+    }
+
+    @Test
+    void getOrder_whenOrderNotFound() throws Exception {
+        OrderResponse order = new OrderResponse();
+        order.setId(1L);
+        order.setPrice(10.0);
+        order.setAmount(5.0);
+        order.setDirection(OrderDirection.SELL);
+
+        when(matchingEngine.findById(1L)).thenThrow(new IllegalArgumentException("whatever"));
+
+        mockMvc.perform(get("/orders/1")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("whatever"));;
     }
 
     @Test

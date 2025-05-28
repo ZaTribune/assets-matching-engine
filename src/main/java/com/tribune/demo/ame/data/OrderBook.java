@@ -50,13 +50,14 @@ public class OrderBook {
     @Getter
     private final Queue<Order> buyQueue = new PriorityBlockingQueue<>(1, comparator2);
 
-    /***
+    /**
      * Adds an order to the order book.
      * If the order is a SELL order, it will be processed against the BUY queue.
      * If the order is a BUY order, it will be processed against the SELL queue.
-     * The method will create an OrderResponse containing the order details, trades made, and any pending amount.
+     * The method will create an {@code OrderResponse} containing the order details,
+     * trades made, and any pending amount.
      * @param order The order to be added.
-     * */
+     **/
     public OrderResponse addOrder(Order order) {
         if (!asset.equals(order.getAsset())){
             throw new IllegalArgumentException("This asset doesn't belong to this order book.");

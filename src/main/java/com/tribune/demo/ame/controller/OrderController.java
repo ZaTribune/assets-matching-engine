@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Queue;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -33,22 +32,5 @@ public class OrderController {
 
         return matchingEngine.findById(id);
     }
-
-    @GetMapping("/{direction}/{asset}")
-    public Queue<Order> getBook(@PathVariable String direction, @PathVariable String asset) {
-        log.info("Getting book for {}ing asset - id: {}", direction, asset);
-
-        OrderBook book = matchingEngine.getOrderBook(asset);
-
-
-        if ("buy".equals(direction)) {
-            return book.getBuyQueue();
-        } else if ("sell".equals(direction)) {
-            return book.getSellQueue();
-        } else {
-            throw new IllegalArgumentException("Invalid direction: " + direction);
-        }
-    }
-
 
 }

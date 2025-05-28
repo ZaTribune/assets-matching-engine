@@ -21,6 +21,19 @@ From a high-level perspective, a matching engine matches people (or organization
   </div>
 </div>
 
+### Problem Statement
+This [file](Baraka%20Java%20Take%20Home%20Assignment%202025.pdf) includes all the information
+needed to understand the problem this project is intended to solve.
+
+### Design Overview
+  <img src="docs/engine.svg" height="451" alt="logo">
+
+- The `MatchingEngine` is the central component—consists of a set of `OrderBook`s.
+- Each `OrderBook` is responsible for a specific asset's booking information—via `2` Queues.
+- The `Archive` is a centralized registry that tracks all orders ever submitted to the system, and is managed by the matching engine.
+- An `EventBus` is included to separate the logic of archiving from the typical booking process.
+- All booking events are propagated from all `OrderBook`s to the `MatchingEngine`. 
+
 ### Built with
 - Java (JDK 21).
 - Spring Boot (3.4).
