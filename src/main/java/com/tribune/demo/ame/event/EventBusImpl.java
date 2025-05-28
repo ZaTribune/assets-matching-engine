@@ -24,23 +24,22 @@ public class EventBusImpl implements EventBus {
     }
 
     @Override
-    public void publish(CustomSpringEvent event) {
-        log.info("publish() - {}", event);
+    public void publish(OrderEvent event) {
+        log.debug("publish - {}", event.getEventType());
         subscribersMap.get(event.getEventType())
                 .forEach(subscriber -> subscriber.onEvent(event));
     }
 
     @Override
-    public void subscribe(EventType event, EventSubscriber newSubscriber) {
-        log.info("subscribe() - eventType: {}, newSubscriber: {}", event, newSubscriber);
-        subscribersMap.get(event)
-                .add(newSubscriber);
+    public void subscribe(EventType eventType, EventSubscriber newSubscriber) {
+        log.debug("subscribe - eventType: {}", eventType);
+        subscribersMap.get(eventType).add(newSubscriber);
     }
 
     @Override
-    public void unsubscribe(EventType event, EventSubscriber subscriber) {
-        log.info("subscribe() - eventType: {}, subscriber: {}", event, subscriber);
-        subscribersMap.get(event)
+    public void unsubscribe(EventType eventType, EventSubscriber subscriber) {
+        log.debug("unsubscribe - eventType: {}", eventType);
+        subscribersMap.get(eventType)
                 .remove(subscriber);
     }
 

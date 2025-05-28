@@ -9,13 +9,13 @@ import org.springframework.context.ApplicationEvent;
 @Getter
 @Setter
 @ToString
-public class CustomSpringEvent extends ApplicationEvent {
+public class OrderEvent extends ApplicationEvent {
 
     private String message;
     private EventType eventType;
     private Object data;
 
-    public CustomSpringEvent(Object source, String message, EventType eventType) {
+    public OrderEvent(Object source, String message, EventType eventType) {
         super(source);
         this.message = message;
         this.eventType = eventType;

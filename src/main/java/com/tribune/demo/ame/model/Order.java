@@ -14,12 +14,18 @@ import java.time.LocalDateTime;
 @ToString
 @SuperBuilder
 public class Order {
+
     private Long id;
+
     private String asset;
+
     private double price;
+
     @NotNull
     private double amount;
 
+    @NotNull
     private OrderDirection direction;
+
     private LocalDateTime time;
 }

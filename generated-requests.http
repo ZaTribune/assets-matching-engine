@@ -1,4 +1,3 @@
-
 ###
 POST http://localhost:8080/orders
 Content-Type: application/json
@@ -9,6 +8,7 @@ Content-Type: application/json
   "amount": 55,
   "direction": "BUY"
 }
+
 
 ###
 POST http://localhost:8080/orders
@@ -21,7 +21,20 @@ Content-Type: application/json
   "direction": "SELL"
 }
 
+
+
+###
+
 <> 2025-05-27T235015.200.json
 ###
-GET http://localhost:8080/orders/4
+GET http://localhost:8080/orders/7
+
+
+###
+GET http://localhost:8080/orders/buy/BTC
+
+
+
+###
+GET http://localhost:8080/orders/sell/BTC
 

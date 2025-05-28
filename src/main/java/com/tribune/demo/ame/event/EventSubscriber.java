@@ -3,5 +3,5 @@ package com.tribune.demo.ame.event;
 
 public interface EventSubscriber {
 
-    void onEvent(CustomSpringEvent event);
+    void onEvent(OrderEvent event);
 }

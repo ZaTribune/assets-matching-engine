@@ -2,7 +2,7 @@ package com.tribune.demo.ame.event;
 
 
 public interface EventBus {
-    void publish(CustomSpringEvent event);
+    void publish(OrderEvent event);
 
     void subscribe(EventType eventType, EventSubscriber subscriber);
 

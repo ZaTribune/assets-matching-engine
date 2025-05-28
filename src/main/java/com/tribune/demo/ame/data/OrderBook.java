@@ -1,9 +1,9 @@
 package com.tribune.demo.ame.data;
 
 
-import com.tribune.demo.ame.event.CustomSpringEvent;
 import com.tribune.demo.ame.event.EventBus;
 import com.tribune.demo.ame.event.EventType;
+import com.tribune.demo.ame.event.OrderEvent;
 import com.tribune.demo.ame.model.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -49,6 +50,24 @@ public class OrderBook {
     @Getter
     private final PriorityBlockingQueue<Order> buyQueue = new PriorityBlockingQueue<>(1, comparator2);
 
+    /***
+     * Adds an order to the order book.
+     * If the order is a SELL order, it will be processed against the BUY queue.
+     * If the order is a BUY order, it will be processed against the SELL queue.
+     * The method will create an OrderResponse containing the order details, trades made, and any pending amount.
+     * @param order The order to be added.
+     * */
+    public OrderResponse addOrder(Order order) {
+        order.setId(counter.getAndIncrement());
+
+        OrderResponse response = OrderDirection.SELL.equals(order.getDirection())?
+                processSell(order) :
+                processBuy(order);
+
+        updateOrder(response);
+        return response;
+    }
+
 
     private OrderResponse processSell(Order order) {
         log.info("Adding order to SELL queue");
@@ -57,30 +76,10 @@ public class OrderBook {
         if (!buyQueue.isEmpty()) {
             Order nextBuy = buyQueue.peek();
             if (nextBuy.getPrice() < order.getPrice()) {
+                log.info("No suitable BUY orders found, adding to SELL queue");
                 sellQueue.add(order);
             } else {
-                while (nextBuy.getPrice() >= order.getPrice() && pendingAmount > 0) {
-
-                    nextBuy = buyQueue.poll();
-                    assert nextBuy != null;//already peaked - false positive
-                    double tradeAmount = nextBuy.getAmount();
-
-                    if (pendingAmount < tradeAmount) {
-                        tradeAmount = pendingAmount;
-                        nextBuy.setAmount(nextBuy.getAmount() - tradeAmount);
-                        buyQueue.add(order);// keep it case it's larger
-                    }
-                    Trade currentTrade = Trade.builder()
-                            .orderId(nextBuy.getId())
-                            .price(nextBuy.getPrice())
-                            .amount(tradeAmount)
-                            .build();
-                    updateCounterpart(order.getId(), nextBuy.getId(), tradeAmount, order.getPrice());
-
-                    trades.add(currentTrade);
-
-                    pendingAmount -= tradeAmount;
-                }
+                pendingAmount = getPendingAmount(order, trades, nextBuy.getPrice() >= order.getPrice(), buyQueue);
             }
         } else {
             buyQueue.add(order);
@@ -95,35 +94,42 @@ public class OrderBook {
         if (!sellQueue.isEmpty()) {
             Order nextSell = sellQueue.peek();
             if (nextSell.getPrice() > order.getPrice()) {
+                log.info("No suitable SELL orders found, adding to BUY queue");
                 buyQueue.add(order);
             } else {
-                while (nextSell.getPrice() <= order.getPrice() && pendingAmount > 0) {
-
-                    nextSell = sellQueue.poll();
-                    assert nextSell != null;//already peaked - false positive
-                    double tradeAmount = nextSell.getAmount();
-
-                    if (pendingAmount < tradeAmount) {
-                        tradeAmount = pendingAmount;
-                        nextSell.setAmount(nextSell.getAmount() - tradeAmount);
-                        sellQueue.add(order);// keep it case it's larger
-                    }
-                    Trade currentTrade = Trade.builder()
-                            .orderId(nextSell.getId())
-                            .price(nextSell.getPrice())
-                            .amount(tradeAmount)
-                            .build();
-                    updateCounterpart(order.getId(), nextSell.getId(), tradeAmount, order.getPrice());
-
-                    trades.add(currentTrade);
-
-                    pendingAmount -= tradeAmount;
-                }
+                pendingAmount = getPendingAmount(order, trades, nextSell.getPrice() <= order.getPrice(), sellQueue);
             }
         } else {
             buyQueue.add(order);
         }
         return createOrderResponse(order, trades, pendingAmount);
+    }
+
+    private double getPendingAmount(Order order, List<Trade> trades, boolean condition, Queue<Order> otherQueue) {
+        double pendingAmount = order.getAmount();
+        while (condition && pendingAmount > 0) {
+
+            Order nextSell = otherQueue.poll();
+            assert nextSell != null;//already peaked - false positive
+            double tradeAmount = nextSell.getAmount();
+
+            if (pendingAmount < tradeAmount) {
+                tradeAmount = pendingAmount;
+                nextSell.setAmount(nextSell.getAmount() - tradeAmount);
+                otherQueue.add(nextSell);// keep it case it's larger
+            }
+            Trade currentTrade = Trade.builder()
+                    .orderId(nextSell.getId())
+                    .price(nextSell.getPrice())
+                    .amount(tradeAmount)
+                    .build();
+            updateCounterpart(order.getId(), nextSell.getId(), tradeAmount, order.getPrice());
+
+            trades.add(currentTrade);
+
+            pendingAmount -= tradeAmount;
+        }
+        return pendingAmount;
     }
 
     private OrderResponse createOrderResponse(Order order, List<Trade> trades, double pendingAmount) {
@@ -139,21 +145,10 @@ public class OrderBook {
                 .build();
     }
 
-    public OrderResponse addOrder(Order order) {
-        order.setId(counter.getAndIncrement());
-        OrderResponse response;
-        if (order.getDirection() == OrderDirection.SELL) {
-            response = processSell(order);
-        } else {
-            response = processBuy(order);
-        }
-        updateOrder(response);
-        System.out.println(sellQueue);
-        return response;
-    }
+
 
     private void updateOrder(OrderResponse response) {
-        CustomSpringEvent event = new CustomSpringEvent(response,
+        OrderEvent event = new OrderEvent(response,
                 "Update the order",
                 EventType.UPDATE_ORDER);
         event.setData(response.getId());
@@ -173,7 +168,7 @@ public class OrderBook {
                 .trades(new ArrayList<>())
                 .pendingAmount(order.getAmount())
                 .build();
-        CustomSpringEvent event = new CustomSpringEvent(o,
+        OrderEvent event = new OrderEvent(o,
                 "Insert the order",
                 EventType.INSERT_ORDER);
         event.setData(o.getId());
@@ -190,7 +185,7 @@ public class OrderBook {
                 .counterpartAmount(counterpartAmount)
                 .counterpartPrice(counterpartPrice)
                 .build();
-        CustomSpringEvent event = new CustomSpringEvent(updateCounterpart,
+        OrderEvent event = new OrderEvent(updateCounterpart,
                 "Update the counterpart",
                 EventType.UPDATE_COUNTERPART);
         event.setData(triggerId);
