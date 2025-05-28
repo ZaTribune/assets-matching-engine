@@ -5,22 +5,6 @@
 <p>From a high-level perspective, a matching engine matches people (or organizations) who want to buy an asset with people who want to sell an asset.</p>
 </div>
 
-
-<div align="center" style="margin: 20px 0; border: 2px solid; border-radius: 10px; background-color: transparent; max-width: 600px;">
-  <h3 style="margin: 0; font-size: 1.5em;">📊 Code Coverage</h3>
-  <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
-
-![Instruction Coverage](https://img.shields.io/badge/Instruction-98.84%25-brightgreen)
-![Line Coverage](https://img.shields.io/badge/Line-100.0%25-brightgreen)
-![Branch Coverage](https://img.shields.io/badge/Branch-79.41%25-yellow)
-![Complexity Coverage](https://img.shields.io/badge/Complexity-82.93%25-yellow)
-![Method Coverage](https://img.shields.io/badge/Method-100.0%25-brightgreen)
-![Class Coverage](https://img.shields.io/badge/Class-100.0%25-brightgreen)
-![Overall Coverage](https://img.shields.io/badge/Overall-97.55%25-brightgreen)
-
-  </div>
-</div>
-
 ### Problem Statement
 This [file](Baraka%20Java%20Take%20Home%20Assignment%202025.pdf) includes all the information
 needed to understand the problem this project is intended to solve.
@@ -45,3 +29,18 @@ needed to understand the problem this project is intended to solve.
 - Load this project on Intellij.
 - Run the application in `local` profile.
 - Use [generated-requests.http](docs/generated-requests.http) to test the application.
+
+<div align="center" style="margin: 20px 0; border: 2px solid; border-radius: 10px; background-color: transparent; max-width: 600px;">
+  <h3 style="margin: 0; font-size: 1.5em;">📊 Code Coverage</h3>
+  <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
+
+![Instruction Coverage](https://img.shields.io/badge/Instruction-98.84%25-brightgreen)
+![Line Coverage](https://img.shields.io/badge/Line-100.0%25-brightgreen)
+![Branch Coverage](https://img.shields.io/badge/Branch-79.41%25-yellow)
+![Complexity Coverage](https://img.shields.io/badge/Complexity-82.93%25-yellow)
+![Method Coverage](https://img.shields.io/badge/Method-100.0%25-brightgreen)
+![Class Coverage](https://img.shields.io/badge/Class-100.0%25-brightgreen)
+![Overall Coverage](https://img.shields.io/badge/Overall-97.55%25-brightgreen)
+
+  </div>
+</div>
