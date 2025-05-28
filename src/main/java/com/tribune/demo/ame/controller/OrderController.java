@@ -40,6 +40,7 @@ public class OrderController {
 
         OrderBook book = matchingEngine.getOrderBook(asset);
 
+
         if ("buy".equals(direction)) {
             return book.getBuyQueue();
         } else if ("sell".equals(direction)) {
