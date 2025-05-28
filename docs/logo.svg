@@ -1,20 +1,63 @@
-<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-  <style>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="179.75511"
+   height="168.14038"
+   viewBox="0 0 179.75511 168.14038"
+   version="1.1"
+   id="svg3"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs3" />
+  <style
+     id="style1">
     .arrow-buy { fill: #00b894; }
     .arrow-sell { fill: #d63031; }
     .dollar { fill: #2d3436; font-size: 40px; font-family: Arial, sans-serif; font-weight: bold; }
     .label { fill: #636e72; font-size: 14px; font-family: Arial, sans-serif; text-anchor: middle; }
   </style>
-
   <!-- Up Arrow (Buy) -->
-  <polygon class="arrow-buy" points="70,120 90,120 90,90 100,90 80,60 60,90 70,90" />
-
   <!-- Down Arrow (Sell) -->
-  <polygon class="arrow-sell" points="130,80 110,80 110,110 100,110 120,140 140,110 130,110" />
-
   <!-- Dollar Sign -->
-  <text class="dollar" x="100" y="170" text-anchor="middle">$</text>
-
   <!-- Optional Label -->
-  <text class="label" x="100" y="190">Assets Matching Engine</text>
+  <g
+     id="g5"
+     transform="translate(-10.122445,-15.92981)">
+    <rect
+       style="fill:#f9f9f9;fill-opacity:1;fill-rule:evenodd;stroke:#ffffff;stroke-width:1.00157"
+       id="rect3"
+       width="178.75354"
+       height="167.13881"
+       x="10.62323"
+       y="16.430595" />
+    <g
+       id="g4"
+       transform="translate(-3.9490662,-0.59212092)">
+      <polygon
+         class="arrow-buy"
+         points="60,90 70,90 70,120 90,120 90,90 100,90 80,60 "
+         id="polygon1"
+         transform="translate(4.2498426,-25.88102)"
+         style="fill:#00b894" />
+      <polygon
+         class="arrow-sell"
+         points="140,110 130,110 130,80 110,80 110,110 100,110 120,140 "
+         id="polygon2"
+         transform="translate(4.2498426,-25.88102)"
+         style="fill:#d63031" />
+      <text
+         class="dollar"
+         x="104.24985"
+         y="144.11897"
+         text-anchor="middle"
+         id="text2"
+         style="font-weight:bold;font-size:40px;font-family:Arial, sans-serif;fill:#2d3436">$</text>
+      <text
+         class="label"
+         x="104.24985"
+         y="164.11897"
+         id="text3"
+         style="font-size:14px;font-family:Arial, sans-serif;text-anchor:middle;fill:#636e72">Assets Matching Engine</text>
+    </g>
+  </g>
 </svg>

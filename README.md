@@ -1,8 +1,8 @@
 
 <div align="center">
     <img src="docs/logo.svg" height="250" alt="logo">
-<p>A matching engine is a technology that lies at the core of any exchange.
-From a high-level perspective, a matching engine matches people (or organizations) who want to buy an asset with people who want to sell an asset.</p>
+<p>A matching engine is a technology that lies at the core of any exchange.</p>
+<p>From a high-level perspective, a matching engine matches people (or organizations) who want to buy an asset with people who want to sell an asset.</p>
 </div>
 
 
