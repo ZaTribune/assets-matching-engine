@@ -10,8 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 class OrderBookTest {
 
@@ -38,7 +37,7 @@ class OrderBookTest {
     }
 
     @Test
-    void addOrderToSell_whenSuccessful() {
+    void addSellOrder_whenSuccessful() {
         Order order = Order.builder()
                 .asset("BTC")
                 .price(10.0)
@@ -62,7 +61,87 @@ class OrderBookTest {
         //Buy Queue should have 2 orders
         assertEquals(2, book.getBuyQueue().size());
 
-        // one item should remain in the SELL queue
+        Order last = book.getBuyQueue().peek();
+
+        assertNotNull(last);
+
+        // We should be able to retrieve its pendingAmount from the archive
+        OrderResponse lastResponse = engine.findById(last.getId());
+
+        // only 5 should be left eventually
+        assertEquals(5, lastResponse.getPendingAmount());
+    }
+
+    @Test
+    void addSellOrder_whenBuyQueueIsEmpty() {
+
+        //clear the buy queue
+        book = engine.getOrderBook("BTC");
+        book.getBuyQueue().clear();
+
+        Order order = Order.builder()
+                .asset("BTC")
+                .price(10.0)
+                .amount(55.0)
+                .direction(OrderDirection.SELL)
+                .time(LocalDateTime.now())
+                .build();
+
+        OrderResponse response = book.addOrder(order);
+
+        // same order returned on response
+        assertEquals(order.getAmount(), response.getAmount());
+        assertEquals(order.getPrice(), response.getPrice());
+        assertEquals(4, book.getSellQueue().size());
+    }
+
+    @Test
+    void addSellOrder_whenNoSuitablePrice() {
+
+        //clear the buy queue
+        book = engine.getOrderBook("BTC");
+        Order order = Order.builder()
+                .asset("BTC")
+                .price(15)
+                .amount(55.0)
+                .direction(OrderDirection.SELL)
+                .time(LocalDateTime.now())
+                .build();
+
+        OrderResponse response = book.addOrder(order);
+
+        // same order returned on response
+        assertEquals(order.getAmount(), response.getAmount());
+        assertEquals(order.getPrice(), response.getPrice());
+        assertEquals(4, book.getSellQueue().size());
+    }
+
+    @Test
+    void addBuyOrder_whenSuccessful() {
+        Order order = Order.builder()
+                .asset("BTC")
+                .price(10.06)
+                .amount(55.0)
+                .direction(OrderDirection.BUY)
+                .time(LocalDateTime.now())
+                .build();
+
+        OrderResponse response = book.addOrder(order);
+
+        assertNotNull(response);
+        assertNotNull(response.getTrades());
+        //3 trades should be created
+        assertEquals(3, response.getTrades().size());
+        //No pending amount left
+        assertEquals(0, response.getPendingAmount());
+
+        //Sell Queue should have 1 orders
+        assertEquals(1, book.getSellQueue().size());
+
+        //Buy Queue should have 2 orders
+        assertEquals(3, book.getBuyQueue().size());
+
+
         Order last = book.getSellQueue().peek();
 
         assertNotNull(last);
@@ -70,48 +149,66 @@ class OrderBookTest {
         // We should be able to retrieve its pendingAmount from the archive
         OrderResponse lastResponse = engine.findById(last.getId());
 
-        assertEquals(20, lastResponse.getPendingAmount());
+        // 25 should be left eventually
+        assertEquals(25, lastResponse.getPendingAmount());
     }
 
     @Test
-    void addOrderToBuy_whenSuccessful() {
+    void addBuyOrder_whenSellQueueIsEmpty() {
+
+        //clear the buy queue
+        book = engine.getOrderBook("BTC");
+        book.getSellQueue().clear();
+
         Order order = Order.builder()
                 .asset("BTC")
+                .price(10.0)
+                .amount(55.0)
+                .direction(OrderDirection.BUY)
+                .time(LocalDateTime.now())
+                .build();
+
+        OrderResponse response = book.addOrder(order);
+
+        // same order returned on response
+        assertEquals(order.getAmount(), response.getAmount());
+        assertEquals(order.getPrice(), response.getPrice());
+        assertEquals(4, book.getBuyQueue().size());
+    }
+
+    @Test
+    void addBuyOrder_whenNoSuitablePrice() {
+
+        //clear the buy queue
+        book = engine.getOrderBook("BTC");
+        Order order = Order.builder()
+                .asset("BTC")
+                .price(5)
+                .amount(55.0)
+                .direction(OrderDirection.BUY)
+                .time(LocalDateTime.now())
+                .build();
+
+        OrderResponse response = book.addOrder(order);
+
+        // same order returned on response
+        assertEquals(order.getAmount(), response.getAmount());
+        assertEquals(order.getPrice(), response.getPrice());
+        assertEquals(4, book.getBuyQueue().size());
+    }
+
+
+    @Test
+    void addOrder_whenAssetIsInvalid(){
+        Order order = Order.builder()
+                .asset("fdfd")
                 .price(10.06)
                 .amount(55.0)
                 .direction(OrderDirection.BUY)
                 .build();
         OrderBook book = engine.getOrderBook("BTC");
 
-        OrderResponse response = book.addOrder(order);
-
-        assertNotNull(response);
-        assertNotNull(response.getTrades());
-        assertEquals(3, response.getTrades().size());
-        assertEquals(0, response.getPendingAmount());
-    }
-
-    @Test
-    void insertToArchive() {
-    }
-
-    @Test
-    void updateCounterpart() {
-    }
-
-    @Test
-    void getAsset() {
-    }
-
-    @Test
-    void getSellQueue() {
-    }
-
-    @Test
-    void getBuyQueue() {
-    }
-
-    @Test
-    void setAsset() {
+        IllegalArgumentException e = assertThrows(IllegalArgumentException.class,()->book.addOrder(order)) ;
+        assertEquals("This asset doesn't belong to this order book.", e.getMessage());
     }
 }

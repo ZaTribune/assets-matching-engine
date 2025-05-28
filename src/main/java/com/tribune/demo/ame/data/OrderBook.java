@@ -26,7 +26,7 @@ public class OrderBook {
 
     @Getter
     @Setter
-    public String asset;
+    private String asset;
 
     public OrderBook(String name, EventBus eventBus, AtomicLong counter) {
         this.asset = name;
@@ -45,10 +45,10 @@ public class OrderBook {
 
     // I used PriorityQueue with synchronized methods but then searched the web and found this one to be a better alternative
     @Getter
-    private final PriorityBlockingQueue<Order> sellQueue = new PriorityBlockingQueue<>(1, comparator1);
+    private final Queue<Order> sellQueue = new PriorityBlockingQueue<>(1, comparator1);
 
     @Getter
-    private final PriorityBlockingQueue<Order> buyQueue = new PriorityBlockingQueue<>(1, comparator2);
+    private final Queue<Order> buyQueue = new PriorityBlockingQueue<>(1, comparator2);
 
     /***
      * Adds an order to the order book.
@@ -58,17 +58,25 @@ public class OrderBook {
      * @param order The order to be added.
      * */
     public OrderResponse addOrder(Order order) {
+        if (!asset.equals(order.getAsset())){
+            throw new IllegalArgumentException("This asset doesn't belong to this order book.");
+        }
         order.setId(counter.getAndIncrement());
 
-        OrderResponse response = OrderDirection.SELL.equals(order.getDirection())?
+        OrderResponse response = OrderDirection.SELL.equals(order.getDirection()) ?
                 processSell(order) :
                 processBuy(order);
 
-        updateOrder(response);
+        saveOrUpdateOrder(response);
         return response;
     }
 
-
+    /**
+     * Processes a SELL order by checking against the BUY queue.
+     *
+     * @param order The SELL order to be processed.
+     * @return OrderResponse containing the order details, trades made, and any pending amount.
+     */
     private OrderResponse processSell(Order order) {
         log.info("Adding order to SELL queue");
         double pendingAmount = order.getAmount();
@@ -82,11 +90,17 @@ public class OrderBook {
                 pendingAmount = getPendingAmount(order, trades, nextBuy.getPrice() >= order.getPrice(), buyQueue);
             }
         } else {
-            buyQueue.add(order);
+            sellQueue.add(order);
         }
         return createOrderResponse(order, trades, pendingAmount);
     }
 
+    /**
+     * Processes a BUY order by checking against the BUY queue.
+     *
+     * @param order The BUY order to be processed.
+     * @return OrderResponse containing the order details, trades made, and any pending amount.
+     */
     private OrderResponse processBuy(Order order) {
         log.info("Adding order to BUY queue");
         double pendingAmount = order.getAmount();
@@ -105,6 +119,14 @@ public class OrderBook {
         return createOrderResponse(order, trades, pendingAmount);
     }
 
+    /**
+     * Calculates the pending amount for an order by processing trades against the other queue.
+     * @param order The order for which the pending amount is calculated.
+     * @param trades The list of trades made during the processing of the order.
+     * @param condition The condition to check whether to continue processing trades.
+     * @param otherQueue The queue against which the trades are processed (either buy or sell).
+     * @return The remaining pending amount after processing trades.
+     **/
     private double getPendingAmount(Order order, List<Trade> trades, boolean condition, Queue<Order> otherQueue) {
         double pendingAmount = order.getAmount();
         while (condition && pendingAmount > 0) {
@@ -132,7 +154,10 @@ public class OrderBook {
         return pendingAmount;
     }
 
-    private OrderResponse createOrderResponse(Order order, List<Trade> trades, double pendingAmount) {
+    /**
+     * Creates an OrderResponse object from the given order, trades, and pending amount.
+     **/
+    OrderResponse createOrderResponse(Order order, List<Trade> trades, double pendingAmount) {
         return OrderResponse.builder()
                 .id(order.getId())
                 .price(order.getPrice())
@@ -145,39 +170,30 @@ public class OrderBook {
                 .build();
     }
 
-
-
-    private void updateOrder(OrderResponse response) {
+    /**
+     * Updates the order in the event bus.
+     * This method creates an OrderEvent with the given response and publishes it to the event bus.
+     * @param response The OrderResponse containing the updated order details.
+     */
+    void saveOrUpdateOrder(OrderResponse response) {
         OrderEvent event = new OrderEvent(response,
                 "Update the order",
-                EventType.UPDATE_ORDER);
+                EventType.SAVE_OR_UPDATE_ORDER);
         event.setData(response.getId());
 
         eventBus.publish(event);
     }
 
-    public void insertToArchive(Order order) {
 
-        OrderResponse o = OrderResponse.builder()
-                .id(order.getId())
-                .price(order.getPrice())
-                .asset(order.getAsset())
-                .direction(order.getDirection())
-                .time(LocalDateTime.now())
-                .amount(order.getAmount())
-                .trades(new ArrayList<>())
-                .pendingAmount(order.getAmount())
-                .build();
-        OrderEvent event = new OrderEvent(o,
-                "Insert the order",
-                EventType.INSERT_ORDER);
-        event.setData(o.getId());
-
-        eventBus.publish(event);
-    }
-
-
-    public void updateCounterpart(Long triggerId, Long counterPartId, double counterpartAmount, double counterpartPrice) {
+    /**
+     * Updates the counterpart order in the archive.
+     * This method creates an UpdateCounterpart object with the given details and publishes an OrderEvent to the event bus.
+     * @param triggerId The ID of the order that triggered the update.
+     * @param counterPartId The ID of the counterpart order being updated.
+     * @param counterpartAmount The amount of the counterpart order.
+     * @param counterpartPrice The price of the counterpart order.
+     **/
+    private void updateCounterpart(Long triggerId, Long counterPartId, double counterpartAmount, double counterpartPrice) {
         log.info("Updating archive for order {}", counterPartId);
         UpdateCounterpart updateCounterpart = UpdateCounterpart.builder()
                 .triggerId(triggerId)

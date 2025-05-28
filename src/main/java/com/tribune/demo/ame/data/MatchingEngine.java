@@ -11,9 +11,7 @@ import com.tribune.demo.ame.model.UpdateCounterpart;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -36,8 +34,7 @@ public class MatchingEngine implements EventSubscriber {
     @Autowired
     public MatchingEngine(EventBus eventBus) {
         this.eventBus = eventBus;
-        eventBus.subscribe(EventType.INSERT_ORDER, this);
-        eventBus.subscribe(EventType.UPDATE_ORDER, this);
+        eventBus.subscribe(EventType.SAVE_OR_UPDATE_ORDER, this);
         eventBus.subscribe(EventType.UPDATE_COUNTERPART, this);
     }
 
@@ -46,7 +43,7 @@ public class MatchingEngine implements EventSubscriber {
     public OrderBook getOrderBook(String name) {
         OrderBook book = orderBooks.get(name);
         if (book == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "OrderBook not found: " + name);
+            throw new IllegalArgumentException("OrderBook not found: " + name);
         }
         return book;
     }
@@ -68,10 +65,7 @@ public class MatchingEngine implements EventSubscriber {
     @Override
     public void onEvent(OrderEvent event) {
         log.debug("Received an event: {}", event.getMessage());
-        if (event.getEventType().equals(EventType.INSERT_ORDER)) {
-            OrderResponse o = (OrderResponse) event.getSource();
-            archive.put(o.getId(), o);
-        } else if (event.getEventType().equals(EventType.UPDATE_ORDER)) {
+        if (event.getEventType().equals(EventType.SAVE_OR_UPDATE_ORDER)) {
             OrderResponse o = (OrderResponse) event.getSource();
             archive.put(o.getId(), o);
         } else if (event.getEventType().equals(EventType.UPDATE_COUNTERPART)) {

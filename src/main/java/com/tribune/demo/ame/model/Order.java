@@ -1,6 +1,7 @@
 package com.tribune.demo.ame.model;
 
 
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -17,6 +18,7 @@ public class Order {
 
     private Long id;
 
+    @NotBlank
     private String asset;
 
     private double price;
