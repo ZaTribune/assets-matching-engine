@@ -10,13 +10,13 @@ From a high-level perspective, a matching engine matches people (or organization
   <h3 style="margin: 0; font-size: 1.5em;">📊 Code Coverage</h3>
   <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
 
-![Instruction Coverage](https://img.shields.io/badge/Instruction-0%25-red)
-![Line Coverage](https://img.shields.io/badge/Line-0%25-red)
-![Branch Coverage](https://img.shields.io/badge/Branch-0%25-red)
-![Complexity Coverage](https://img.shields.io/badge/Complexity-0%25-red)
-![Method Coverage](https://img.shields.io/badge/Method-0%25-red)
-![Class Coverage](https://img.shields.io/badge/Class-0%25-red)
-![Overall Coverage](https://img.shields.io/badge/Overall-0%25-red)
+![Instruction Coverage](https://img.shields.io/badge/Instruction-92.44%25-brightgreen)
+![Line Coverage](https://img.shields.io/badge/Line-94.27%25-brightgreen)
+![Branch Coverage](https://img.shields.io/badge/Branch-71.05%25-red)
+![Complexity Coverage](https://img.shields.io/badge/Complexity-75.0%25-yellow)
+![Method Coverage](https://img.shields.io/badge/Method-92.0%25-brightgreen)
+![Class Coverage](https://img.shields.io/badge/Class-100.0%25-brightgreen)
+![Overall Coverage](https://img.shields.io/badge/Overall-91.02%25-brightgreen)
 
   </div>
 </div>
