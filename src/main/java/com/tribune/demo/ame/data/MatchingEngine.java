@@ -27,7 +27,7 @@ public class MatchingEngine implements EventSubscriber {
     private final Map<Long, OrderResponse> archive = new ConcurrentHashMap<>();
     private final EventBus eventBus;
     @Getter
-    private final AtomicLong counter = new AtomicLong(1);
+    private final AtomicLong counter = new AtomicLong(0);
 
     @Autowired
     public MatchingEngine(EventBus eventBus) {

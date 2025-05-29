@@ -43,7 +43,7 @@ public class DevBootstrap {
                 .asset("BTC")
                 .id(counter.getAndIncrement())
                 .direction(OrderDirection.SELL)
-                .time(now)
+                .timestamp(now)
                 .amount(20)
                 .price(10.05)
                 .build();
@@ -54,7 +54,7 @@ public class DevBootstrap {
                 .asset("BTC")
                 .id(counter.getAndIncrement())
                 .direction(OrderDirection.SELL)
-                .time(now.plusMinutes(2))
+                .timestamp(now.plusMinutes(2))
                 .amount(20)
                 .price(10.04)
                 .build();
@@ -65,7 +65,7 @@ public class DevBootstrap {
                 .asset("BTC")
                 .id(counter.getAndIncrement())
                 .direction(OrderDirection.SELL)
-                .time(now.plusMinutes(3))
+                .timestamp(now.plusMinutes(3))
                 .amount(40)
                 .price(10.05)
                 .build();
@@ -76,7 +76,7 @@ public class DevBootstrap {
                 .asset("BTC")
                 .id(counter.getAndIncrement())
                 .direction(OrderDirection.BUY)
-                .time(now.plusMinutes(5))
+                .timestamp(now.plusMinutes(5))
                 .amount(20)
                 .price(10.00)
                 .build();
@@ -87,7 +87,7 @@ public class DevBootstrap {
                 .asset("BTC")
                 .id(counter.getAndIncrement())
                 .direction(OrderDirection.BUY)
-                .time(now.plusMinutes(6))
+                .timestamp(now.plusMinutes(6))
                 .amount(40)
                 .price(10.02)
                 .build();
@@ -98,7 +98,7 @@ public class DevBootstrap {
                 .asset("BTC")
                 .id(counter.getAndIncrement())
                 .direction(OrderDirection.BUY)
-                .time(now.plusMinutes(10))
+                .timestamp(now.plusMinutes(10))
                 .amount(40)
                 .price(10.00)
                 .build();

@@ -43,7 +43,7 @@ class OrderBookTest {
                 .price(10.0)
                 .amount(55.0)
                 .direction(OrderDirection.SELL)
-                .time(LocalDateTime.now())
+                .timestamp(LocalDateTime.now())
                 .build();
 
         OrderResponse response = book.addOrder(order);
@@ -84,7 +84,7 @@ class OrderBookTest {
                 .price(10.0)
                 .amount(55.0)
                 .direction(OrderDirection.SELL)
-                .time(LocalDateTime.now())
+                .timestamp(LocalDateTime.now())
                 .build();
 
         OrderResponse response = book.addOrder(order);
@@ -105,7 +105,7 @@ class OrderBookTest {
                 .price(15)
                 .amount(55.0)
                 .direction(OrderDirection.SELL)
-                .time(LocalDateTime.now())
+                .timestamp(LocalDateTime.now())
                 .build();
 
         OrderResponse response = book.addOrder(order);
@@ -123,7 +123,7 @@ class OrderBookTest {
                 .price(10.06)
                 .amount(55.0)
                 .direction(OrderDirection.BUY)
-                .time(LocalDateTime.now())
+                .timestamp(LocalDateTime.now())
                 .build();
 
         OrderResponse response = book.addOrder(order);
@@ -165,7 +165,7 @@ class OrderBookTest {
                 .price(10.0)
                 .amount(55.0)
                 .direction(OrderDirection.BUY)
-                .time(LocalDateTime.now())
+                .timestamp(LocalDateTime.now())
                 .build();
 
         OrderResponse response = book.addOrder(order);
@@ -186,7 +186,7 @@ class OrderBookTest {
                 .price(5)
                 .amount(55.0)
                 .direction(OrderDirection.BUY)
-                .time(LocalDateTime.now())
+                .timestamp(LocalDateTime.now())
                 .build();
 
         OrderResponse response = book.addOrder(order);

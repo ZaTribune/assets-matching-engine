@@ -1,49 +1,4 @@
-###
-POST http://localhost:8080/orders
-Content-Type: application/json
-
-{
-  "asset": "BTC",
-  "price": 10.06,
-  "amount": 55,
-  "direction": "BUY"
-}
-
-
-###
-POST http://localhost:8080/orders
-Content-Type: application/json
-
-{
-  "asset": "BTC",
-  "price": 10.0,
-  "amount": 55,
-  "direction": "SELL"
-}
-
-
-
-###
-
-<> 2025-05-27T235015.200.json
-###
-GET http://localhost:8080/orders/4
-
-
-###
-GET http://localhost:8080/orders/buy/BTC
-
-
-
-###
-GET http://localhost:8080/orders/sell/BTC
-
-
-
-
-###
-
-###
+##### [Example]
 POST http://localhost:8080/orders
 Content-Type: application/json
 
@@ -77,7 +32,9 @@ Content-Type: application/json
 }
 
 ###
-GET http://localhost:8080/orders/3
+GET http://localhost:8080/orders/0
+###
+GET http://localhost:8080/orders/2
 ###
 POST http://localhost:8080/orders
 Content-Type: application/json
@@ -90,6 +47,6 @@ Content-Type: application/json
 }
 
 ###
-GET http://localhost:8080/orders/1
+GET http://localhost:8080/orders/0
 ###
-GET http://localhost:8080/orders/4
+GET http://localhost:8080/orders/3

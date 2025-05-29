@@ -29,5 +29,5 @@ public class Order {
     @NotNull
     private OrderDirection direction;
 
-    private LocalDateTime time;
+    private LocalDateTime timestamp;
 }

@@ -37,11 +37,11 @@ public class OrderBook {
 
     // I need the least selling prices to come first
     private final Comparator<Order> comparator1 = Comparator.comparingDouble(Order::getPrice)//asc
-            .thenComparing(Order::getTime);//asc
+            .thenComparing(Order::getTimestamp);//asc
 
     // I need the highest buying prices to come first
     private final Comparator<Order> comparator2 = Comparator.comparingDouble(Order::getPrice).reversed()//desc
-            .thenComparing(Order::getTime).reversed();//desc
+            .thenComparing(Order::getTimestamp).reversed();//desc
 
     // I used PriorityQueue with synchronized methods but then searched the web and found this one to be a better alternative
     @Getter
@@ -166,7 +166,7 @@ public class OrderBook {
                 .price(order.getPrice())
                 .asset(order.getAsset())
                 .direction(order.getDirection())
-                .time(LocalDateTime.now())
+                .timestamp(LocalDateTime.now())
                 .amount(order.getAmount())
                 .pendingAmount(pendingAmount)
                 .trades(trades)

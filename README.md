@@ -186,19 +186,17 @@ POST /orders
 Since we currently don't have a sell order with price satisfying this buy order, it just ends up in our order book.
 ```json
 {
-  "id": 2,
+  "id": 1,
   "asset": "BTC",
   "price": 43250.0,
   "amount": 0.25,
   "direction": "BUY",
-  "time": "2025-05-29T10:31:12.4711639",
+  "timestamp": "2025-05-29T10:31:12.4711639",
   "trades": [],
   "pendingAmount": 0.25
 }
 ```
-
 Now let's place an order to buy `0.35 Bitcoin` at the price of no more than `43,253.00`.
-
 ```
 POST /orders
 ```
@@ -210,10 +208,27 @@ POST /orders
   "direction": "BUY"
 }
 ```
-In this case we have a matching order in our book, we can sell `0.35 Bitcoin` for `43,251.00`, which is lower than `43,253.00`.
-
-Current state of order `#0`:
-
+In this case we have a matching order in our book, we can sell `0.35 Bitcoin` for `43,251.00`, which is lower than `43,253.00`.  
+We get this on response:
+```json
+{
+  "id": 2,
+  "asset": "BTC",
+  "price": 43253.0,
+  "amount": 0.35,
+  "direction": "BUY",
+  "timestamp": "2025-05-29T10:54:56.0533737",
+  "trades": [
+    {
+      "orderId": 0,
+      "amount": 0.35,
+      "price": 43251.0
+    }
+  ],
+  "pendingAmount": 0.0
+}
+```
+We can verify by getting current state of order `#0`:
 ```
 GET /orders/0
 ```
@@ -235,9 +250,7 @@ GET /orders/0
   "pendingAmount": 0.65
 }
 ```
-
 Current state of order `#2`:
-
 ```
 GET /orders/2
 ```
@@ -259,9 +272,7 @@ GET /orders/2
   "pendingAmount": 0.00
 }
 ```
-
 Let's place one last buy order to fully fill our initial sell order.
-
 ```
 POST /orders
 ```
@@ -273,32 +284,50 @@ POST /orders
   "direction": "BUY"
 }
 ```
+We get this on response:
+```json
+{
+  "id": 3,
+  "asset": "BTC",
+  "price": 43251.0,
+  "amount": 0.65,
+  "direction": "BUY",
+  "timestamp": "2025-05-29T10:58:16.6364898",
+  "trades": [
+    {
+      "orderId": 0,
+      "amount": 0.65,
+      "price": 43251.0
+    }
+  ],
+  "pendingAmount": 0.0
+}
+```
 Now both orders `#0` and `#3` are fully executed.
-
 ```
 GET /orders/0
 ```
 ```json
 {
   "id": 0,
-  "timestamp": "2021-12-08T13:34:44.460575730Z",
   "asset": "BTC",
-  "price": 42251.00,
+  "price": 43251.0,
   "amount": 1.0,
   "direction": "SELL",
+  "timestamp": "2025-05-29T10:54:09.0994163",
   "trades": [
     {
       "orderId": 2,
       "amount": 0.35,
-      "price": 43251.00
+      "price": 43253.0
     },
     {
       "orderId": 3,
       "amount": 0.65,
-      "price": 43251.00
+      "price": 43251.0
     }
   ],
-  "pendingAmount": 0.00
+  "pendingAmount": 0.35
 }
 ```
 ```
@@ -307,19 +336,19 @@ GET /orders/3
 ```json
 {
   "id": 3,
-  "timestamp": "2021-12-08T13:40:07.460575730Z",
   "asset": "BTC",
-  "price": 42251.00,
+  "price": 43251.0,
   "amount": 0.65,
   "direction": "BUY",
+  "timestamp": "2025-05-29T10:58:16.6364898",
   "trades": [
     {
       "orderId": 0,
       "amount": 0.65,
-      "price": 43251.00
+      "price": 43251.0
     }
   ],
-  "pendingAmount": 0.00
+  "pendingAmount": 0.0
 }
 ```
 
