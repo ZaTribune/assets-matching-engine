@@ -19,8 +19,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 ///  This will hold all orderBooks for all assets
-
-
 @Slf4j
 @Component
 public class MatchingEngine implements EventSubscriber {
@@ -36,6 +34,7 @@ public class MatchingEngine implements EventSubscriber {
         this.eventBus = eventBus;
         eventBus.subscribe(EventType.SAVE_OR_UPDATE_ORDER, this);
         eventBus.subscribe(EventType.UPDATE_COUNTERPART, this);
+        newOrderBook("BTC");
     }
 
     private final Map<String, OrderBook> orderBooks = new HashMap<>();
@@ -48,14 +47,13 @@ public class MatchingEngine implements EventSubscriber {
         return book;
     }
 
-    public OrderBook newOrderBook(String name) {
+    OrderBook newOrderBook(String name) {
+        if (orderBooks.containsKey(name)) {
+            return orderBooks.get(name);
+        }
         OrderBook orderBook = new OrderBook(name, eventBus, counter);
         orderBooks.put(name, orderBook);
         return orderBook;
-    }
-
-    public void addOrderBook(String name, OrderBook orderBook) {
-        orderBooks.put(name, orderBook);
     }
 
     public boolean deleteOrderBook(String name) {

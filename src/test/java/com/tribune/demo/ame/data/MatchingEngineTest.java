@@ -45,20 +45,6 @@ class MatchingEngineTest {
         assertEquals(bookName, result.getAsset());
     }
 
-
-
-    @Test
-    void addOrderBook() {
-        String bookName = "ETH";
-        OrderBook orderBook = matchingEngine.newOrderBook(bookName);
-        assertNotNull(orderBook);
-
-        matchingEngine.addOrderBook(bookName, orderBook);
-        OrderBook result = matchingEngine.getOrderBook(bookName);
-        assertNotNull(result);
-        assertEquals(bookName, result.getAsset());
-    }
-
     @Test
     void deleteOrderBook() {
         String bookName = "LTC";

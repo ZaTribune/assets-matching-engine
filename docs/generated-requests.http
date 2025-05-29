@@ -38,3 +38,58 @@ GET http://localhost:8080/orders/buy/BTC
 ###
 GET http://localhost:8080/orders/sell/BTC
 
+
+
+
+###
+
+###
+POST http://localhost:8080/orders
+Content-Type: application/json
+
+{
+  "asset": "BTC",
+  "price": 43251.00,
+  "amount": 1.0,
+  "direction": "SELL"
+}
+###
+###
+POST http://localhost:8080/orders
+Content-Type: application/json
+
+{
+  "asset": "BTC",
+  "price": 43250.00,
+  "amount": 0.25,
+  "direction": "BUY"
+}
+
+###
+POST http://localhost:8080/orders
+Content-Type: application/json
+
+{
+  "asset": "BTC",
+  "price": 43253.00,
+  "amount": 0.35,
+  "direction": "BUY"
+}
+
+###
+GET http://localhost:8080/orders/3
+###
+POST http://localhost:8080/orders
+Content-Type: application/json
+
+{
+  "asset": "BTC",
+  "price": 43251.00,
+  "amount": 0.65,
+  "direction": "BUY"
+}
+
+###
+GET http://localhost:8080/orders/1
+###
+GET http://localhost:8080/orders/4

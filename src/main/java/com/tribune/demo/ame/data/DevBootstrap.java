@@ -28,7 +28,8 @@ public class DevBootstrap {
 
     @PostConstruct
     public void init() {
-        OrderBook orderBook = matchingEngine.newOrderBook("BTC");
+        log.info("Running on local profile, initializing data...");
+        OrderBook orderBook = matchingEngine.getOrderBook("BTC");
 
         AtomicLong counter = matchingEngine.getCounter();
 

@@ -56,10 +56,11 @@ public class OrderBook {
      * If the order is a BUY order, it will be processed against the SELL queue.
      * The method will create an {@code OrderResponse} containing the order details,
      * trades made, and any pending amount.
+     *
      * @param order The order to be added.
      **/
     public OrderResponse addOrder(Order order) {
-        if (!asset.equals(order.getAsset())){
+        if (!asset.equals(order.getAsset())) {
             throw new IllegalArgumentException("This asset doesn't belong to this order book.");
         }
         order.setId(counter.getAndIncrement());
@@ -122,9 +123,10 @@ public class OrderBook {
 
     /**
      * Calculates the pending amount for an order by processing trades against the other queue.
-     * @param order The order for which the pending amount is calculated.
-     * @param trades The list of trades made during the processing of the order.
-     * @param condition The condition to check whether to continue processing trades.
+     *
+     * @param order      The order for which the pending amount is calculated.
+     * @param trades     The list of trades made during the processing of the order.
+     * @param condition  The condition to check whether to continue processing trades.
      * @param otherQueue The queue against which the trades are processed (either buy or sell).
      * @return The remaining pending amount after processing trades.
      **/
@@ -174,6 +176,7 @@ public class OrderBook {
     /**
      * Updates the order in the event bus.
      * This method creates an OrderEvent with the given response and publishes it to the event bus.
+     *
      * @param response The OrderResponse containing the updated order details.
      */
     void saveOrUpdateOrder(OrderResponse response) {
@@ -189,10 +192,11 @@ public class OrderBook {
     /**
      * Updates the counterpart order in the archive.
      * This method creates an UpdateCounterpart object with the given details and publishes an OrderEvent to the event bus.
-     * @param triggerId The ID of the order that triggered the update.
-     * @param counterPartId The ID of the counterpart order being updated.
+     *
+     * @param triggerId         The ID of the order that triggered the update.
+     * @param counterPartId     The ID of the counterpart order being updated.
      * @param counterpartAmount The amount of the counterpart order.
-     * @param counterpartPrice The price of the counterpart order.
+     * @param counterpartPrice  The price of the counterpart order.
      **/
     private void updateCounterpart(Long triggerId, Long counterPartId, double counterpartAmount, double counterpartPrice) {
         log.info("Updating archive for order {}", counterPartId);
