@@ -359,13 +359,14 @@ GET /orders/3
 
 - The `MatchingEngine` is the central component—consists of a set of `OrderBook`s.
 - Each `OrderBook` is responsible for a specific asset's booking information—via `2` Queues.
-- One Queue is for `BUY` orders, another is for `SELL` orders.
-- Queues are implemented with `PriorityBlockingQueue` as it's thread-safe and can prioritize elements based on a custom `Comparator`.
-- Each order placed is assigned an id from an `AtomicLong` held by the `MatchingEngine`—Also a thread safe element used for counting.
-- The `Archive` is a centralized registry that tracks all orders ever submitted to the system, and is managed by the matching engine.
+  - One Queue for `BUY` orders.
+  - Another for `SELL` orders.
+- Queues are implemented with `PriorityBlockingQueue` as it's thread-safe FIFO data structure that can prioritize elements based on a custom `Comparator`.
+- Each order placed is assigned an id from an `AtomicLong`—Another thread safe element used in applications such as atomically incremented sequence numbers.
+  - `AtomicLong` is also managed by the `MatchingEngine`.
+- The `Archive` is a centralized registry that tracks all orders submitted to the system—Also managed by the `MatchingEngine`.
 - An `EventBus` is included to separate the logic of archiving from the typical booking process.
-- All booking events are propagated from all `OrderBook`s to the `MatchingEngine`. 
-
+- In other words, all booking events are propagated from `OrderBook`s to the `MatchingEngine` via the `EventBus`.
 
 ### Steps to deploy
 - Load this project on Intellij.
