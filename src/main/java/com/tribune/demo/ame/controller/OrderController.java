@@ -35,11 +35,11 @@ public class OrderController {
         return matchingEngine.findOrderById(id);
     }
 
-    @GetMapping("/live/asset/{name}")
-    public List<Order> getLiveOrdersByAsset(@PathVariable String name) {
+    @GetMapping("/live")
+    public List<Order> getLiveOrdersByAsset(@RequestParam(name = "asset") String name, @RequestParam(name = "direction", required = false) String direction) {
         log.info("Getting order by asset - name: {}", name);
 
-        return matchingEngine.findAllLiveOrdersByAsset(name);
+        return matchingEngine.findAllLiveOrdersByAsset(name, direction);
     }
 
 }

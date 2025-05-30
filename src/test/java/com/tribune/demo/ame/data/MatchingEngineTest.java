@@ -7,6 +7,8 @@ import com.tribune.demo.ame.model.OrderDirection;
 import com.tribune.demo.ame.model.OrderResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
@@ -83,8 +85,14 @@ class MatchingEngineTest {
         assertEquals(100.0, result.getPrice());
     }
 
-    @Test
-    void findAllLiveOrdersByAsset() {
+    @ParameterizedTest
+    @CsvSource({
+            "BUY, 1, false",
+            "sell, 1, false",
+            "null, 2, false",
+            "test, 0, true"
+    })
+    void findLiveOrdersByAsset(String dir, int size, boolean error) {
 
 
         OrderResponse order1 = OrderResponse.builder()
@@ -106,8 +114,15 @@ class MatchingEngineTest {
         book.addOrder(order1);
         book.addOrder(order2);
 
-        List<Order> orders = matchingEngine.findAllLiveOrdersByAsset("BTC");
-        assertNotNull(orders);
-        assertEquals(2, orders.size());
+        String direction = "null".equals(dir) ? null : dir;
+        if (error) {
+            IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () ->
+                    matchingEngine.findAllLiveOrdersByAsset("BTC", direction));
+            assertEquals("Invalid order direction: test", e.getMessage());
+        } else {
+            List<Order> orders = matchingEngine.findAllLiveOrdersByAsset("BTC", direction);
+            assertNotNull(orders);
+            assertEquals(size, orders.size());
+        }
     }
 }

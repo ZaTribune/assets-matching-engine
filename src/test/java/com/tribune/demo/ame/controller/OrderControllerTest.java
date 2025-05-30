@@ -148,9 +148,25 @@ class OrderControllerTest {
         order.setAmount(5.0);
         order.setDirection(OrderDirection.SELL);
 
-        when(matchingEngine.findAllLiveOrdersByAsset("BTC")).thenReturn(List.of(order));
+        when(matchingEngine.findAllLiveOrdersByAsset("BTC", "SELL")).thenReturn(List.of(order));
 
-        mockMvc.perform(get("/orders/live/asset/BTC")
+        mockMvc.perform(get("/orders/live?asset=BTC&direction=SELL")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1));
+    }
+
+    @Test
+    void getLiveOrdersByAssetName_whenDirectionNotSpecified() throws Exception {
+        Order order = new Order();
+        order.setId(1L);
+        order.setPrice(10.0);
+        order.setAmount(5.0);
+        order.setDirection(OrderDirection.SELL);
+
+        when(matchingEngine.findAllLiveOrdersByAsset("BTC", null)).thenReturn(List.of(order));
+
+        mockMvc.perform(get("/orders/live?asset=BTC")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1));

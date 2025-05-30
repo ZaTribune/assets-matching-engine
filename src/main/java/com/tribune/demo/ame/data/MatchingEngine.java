@@ -5,16 +5,15 @@ import com.tribune.demo.ame.event.EventBus;
 import com.tribune.demo.ame.event.EventSubscriber;
 import com.tribune.demo.ame.event.EventType;
 import com.tribune.demo.ame.event.OrderEvent;
-import com.tribune.demo.ame.model.Order;
-import com.tribune.demo.ame.model.OrderResponse;
-import com.tribune.demo.ame.model.Trade;
-import com.tribune.demo.ame.model.UpdateCounterpart;
+import com.tribune.demo.ame.model.*;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
@@ -42,7 +41,6 @@ public class MatchingEngine implements EventSubscriber {
     }
 
 
-
     /**
      * Retrieves an OrderBook by its name.
      * If the OrderBook does not exist, it throws an IllegalArgumentException.
@@ -57,6 +55,7 @@ public class MatchingEngine implements EventSubscriber {
         }
         return book;
     }
+
     /**
      * Creates a new OrderBook for the specified asset name.
      * If an OrderBook with the same name already exists, it returns the existing one.
@@ -122,10 +121,25 @@ public class MatchingEngine implements EventSubscriber {
      * @param name The name of the asset for which to find live orders.
      * @return A list of all live orders for a specified asset name.
      */
-    public List<Order> findAllLiveOrdersByAsset(String name) {
+    public List<Order> findAllLiveOrdersByAsset(String name, String direction) {
+        log.info("Finding live orders for asset: {}, direction: {}", name, direction);
         OrderBook orderBook = getOrderBook(name);
 
-        return Stream.concat(orderBook.getBuyQueue().stream(), orderBook.getSellQueue().stream())
-                .toList();
+        if (direction == null) {
+            return Stream.concat(orderBook.getBuyQueue().stream(), orderBook.getSellQueue().stream())
+                    .toList();
+        } else {
+            OrderDirection dir;
+            try {
+                dir = OrderDirection.valueOf(direction.toUpperCase());
+            } catch (Exception e) {
+                throw new IllegalArgumentException("Invalid order direction: " + direction);
+            }
+
+            return dir == OrderDirection.BUY ?
+                    orderBook.getBuyQueue().stream().toList() :
+                    orderBook.getSellQueue().stream().toList();
+        }
+
     }
 }
