@@ -66,7 +66,7 @@ class OrderBookTest {
         assertNotNull(last);
 
         // We should be able to retrieve its pendingAmount from the archive
-        OrderResponse lastResponse = engine.findById(last.getId());
+        OrderResponse lastResponse = engine.findOrderById(last.getId());
 
         // only 5 should be left eventually
         assertEquals(5, lastResponse.getPendingAmount());
@@ -147,7 +147,7 @@ class OrderBookTest {
         assertNotNull(last);
 
         // We should be able to retrieve its pendingAmount from the archive
-        OrderResponse lastResponse = engine.findById(last.getId());
+        OrderResponse lastResponse = engine.findOrderById(last.getId());
 
         // 25 should be left eventually
         assertEquals(25, lastResponse.getPendingAmount());

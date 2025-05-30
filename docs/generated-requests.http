@@ -50,3 +50,7 @@ Content-Type: application/json
 GET http://localhost:8080/orders/0
 ###
 GET http://localhost:8080/orders/3
+
+
+##### [Extra]
+GET http://localhost:8080/orders/live/asset/BTC

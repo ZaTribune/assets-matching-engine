@@ -18,6 +18,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -102,7 +103,8 @@ class OrderControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(order)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Validation Error"));
+                .andExpect(jsonPath("$.message").value("Validation Error"))
+                .andExpect(jsonPath("$.reason[0]").value("asset : must not be blank"));
     }
 
     @Test
@@ -113,13 +115,13 @@ class OrderControllerTest {
         order.setAmount(5.0);
         order.setDirection(OrderDirection.SELL);
 
-        when(matchingEngine.findById(1L)).thenReturn(order);
+        when(matchingEngine.findOrderById(1L)).thenReturn(order);
 
         mockMvc.perform(get("/orders/1")
                         .contentType(MediaType.APPLICATION_JSON))
 
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1L));;
+                .andExpect(jsonPath("$.id").value(1L));
     }
 
     @Test
@@ -130,7 +132,7 @@ class OrderControllerTest {
         order.setAmount(5.0);
         order.setDirection(OrderDirection.SELL);
 
-        when(matchingEngine.findById(1L)).thenThrow(new IllegalArgumentException("whatever"));
+        when(matchingEngine.findOrderById(1L)).thenThrow(new IllegalArgumentException("whatever"));
 
         mockMvc.perform(get("/orders/1")
                         .contentType(MediaType.APPLICATION_JSON))
@@ -139,6 +141,18 @@ class OrderControllerTest {
     }
 
     @Test
-    void getBook() {
+    void getLiveOrdersByAssetName_whenSuccessful() throws Exception {
+        Order order = new Order();
+        order.setId(1L);
+        order.setPrice(10.0);
+        order.setAmount(5.0);
+        order.setDirection(OrderDirection.SELL);
+
+        when(matchingEngine.findAllLiveOrdersByAsset("BTC")).thenReturn(List.of(order));
+
+        mockMvc.perform(get("/orders/live/asset/BTC")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1));
     }
 }

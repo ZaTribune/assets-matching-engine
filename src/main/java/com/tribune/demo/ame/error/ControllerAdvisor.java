@@ -39,18 +39,15 @@ public class ControllerAdvisor extends ResponseEntityExceptionHandler {
                                                                   @NonNull HttpHeaders headers,
                                                                   @NonNull HttpStatusCode status,
                                                                   @NonNull WebRequest request) {
-        logger.error("error");
-        List<Object> list = ex.getBindingResult()
-                .getFieldErrors()
-                .stream()
-                .map(fieldError -> String.format("%s : %s", fieldError.getField(), fieldError.getDefaultMessage()))
-                .collect(Collectors.toList());
-
-        logger.error(list);
+        logger.error("Invalid input error! {}", ex);
 
         GenericResponse<String> response = GenericResponse.<String>builder()
                 .message("Validation Error")
-                .reason(list.toArray())
+                .reason(ex.getBindingResult()
+                        .getFieldErrors()
+                        .stream()
+                        .map(fieldError -> String.format("%s : %s", fieldError.getField(), fieldError.getDefaultMessage()))
+                        .toArray())
                 .code(6002)
                 .build();
 

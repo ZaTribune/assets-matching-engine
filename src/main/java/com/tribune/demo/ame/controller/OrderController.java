@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 
 @Slf4j
 @RequiredArgsConstructor
@@ -30,7 +32,14 @@ public class OrderController {
     public Order getOrder(@PathVariable int id) {
         log.info("Getting order - id: {}", id);
 
-        return matchingEngine.findById(id);
+        return matchingEngine.findOrderById(id);
+    }
+
+    @GetMapping("/live/asset/{name}")
+    public List<Order> getLiveOrdersByAsset(@PathVariable String name) {
+        log.info("Getting order by asset - name: {}", name);
+
+        return matchingEngine.findAllLiveOrdersByAsset(name);
     }
 
 }
