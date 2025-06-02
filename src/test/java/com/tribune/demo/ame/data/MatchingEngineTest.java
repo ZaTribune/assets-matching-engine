@@ -11,6 +11,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -20,7 +21,6 @@ import static org.junit.jupiter.api.Assertions.*;
 class MatchingEngineTest {
 
     MatchingEngine matchingEngine;
-
 
 
     @BeforeEach
@@ -74,8 +74,11 @@ class MatchingEngineTest {
                 .price(100.0)
                 .build();
 
-        Map<Long, OrderResponse> archive = (Map<Long, OrderResponse>) ReflectionTestUtils.getField(matchingEngine,"archive");
+        Map<Long, OrderResponse> archive = new HashMap<>();
         archive.put(id, orderResponse);
+
+        ReflectionTestUtils.setField(matchingEngine, "archive", archive);
+
 
         OrderResponse result = matchingEngine.findOrderById(id);
         assertNotNull(result);
