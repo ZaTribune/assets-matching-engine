@@ -7,7 +7,6 @@ import com.tribune.demo.ame.impl.SimpleMatchingEngine;
 import com.tribune.demo.ame.impl.SimpleOrderBook;
 import com.tribune.demo.ame.model.Order;
 import com.tribune.demo.ame.model.OrderDirection;
-import com.tribune.demo.ame.model.OrderResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -50,14 +49,14 @@ class SimpleOrderBookTest {
                 .timestamp(LocalDateTime.now())
                 .build();
 
-        OrderResponse response = book.submit(order);
+        Order response = book.submit(order);
 
         assertNotNull(response);
-        assertNotNull(response.getTrades());
+        assertNotNull(response.trades());
         //two trades should be created
-        assertEquals(2, response.getTrades().size());
+        assertEquals(2, response.trades().size());
         //No pending amount left
-        assertEquals(0, response.getPendingAmount());
+        assertEquals(0, response.pendingAmount());
 
         //Sell Queue should have 3 orders
         assertEquals(3, book.getSellQueue().size());
@@ -70,10 +69,10 @@ class SimpleOrderBookTest {
         assertNotNull(last);
 
         // We should be able to retrieve its pendingAmount from the archive
-        OrderResponse lastResponse = engine.findOrderById(last.getId());
+        Order lastResponse = engine.findOrderById(last.id());
 
         // only 5 should be left eventually
-        assertEquals(5, lastResponse.getPendingAmount());
+        assertEquals(5, lastResponse.pendingAmount());
     }
 
     @Test
@@ -92,11 +91,11 @@ class SimpleOrderBookTest {
                 .timestamp(LocalDateTime.now())
                 .build();
 
-        OrderResponse response = book.submit(order);
+        Order response = book.submit(order);
 
         // same order returned on response
-        assertEquals(order.getAmount(), response.getAmount());
-        assertEquals(order.getPrice(), response.getPrice());
+        assertEquals(order.amount(), response.amount());
+        assertEquals(order.price(), response.price());
         assertEquals(4, book.getSellQueue().size());
     }
 
@@ -113,11 +112,11 @@ class SimpleOrderBookTest {
                 .timestamp(LocalDateTime.now())
                 .build();
 
-        OrderResponse response = book.submit(order);
+        Order response = book.submit(order);
 
         // same order returned on response
-        assertEquals(order.getAmount(), response.getAmount());
-        assertEquals(order.getPrice(), response.getPrice());
+        assertEquals(order.amount(), response.amount());
+        assertEquals(order.price(), response.price());
         assertEquals(4, book.getSellQueue().size());
     }
 
@@ -132,14 +131,14 @@ class SimpleOrderBookTest {
                 .timestamp(LocalDateTime.now())
                 .build();
 
-        OrderResponse response = book.submit(order);
+        Order response = book.submit(order);
 
         assertNotNull(response);
-        assertNotNull(response.getTrades());
+        assertNotNull(response.trades());
         //3 trades should be created
-        assertEquals(3, response.getTrades().size());
+        assertEquals(3, response.trades().size());
         //No pending amount left
-        assertEquals(0, response.getPendingAmount());
+        assertEquals(0, response.pendingAmount());
 
         //Sell Queue should have 1 orders
         assertEquals(1, book.getSellQueue().size());
@@ -153,10 +152,10 @@ class SimpleOrderBookTest {
         assertNotNull(last);
 
         // We should be able to retrieve its pendingAmount from the archive
-        OrderResponse lastResponse = engine.findOrderById(last.getId());
+        Order lastResponse = engine.findOrderById(last.id());
 
         // 25 should be left eventually
-        assertEquals(25, lastResponse.getPendingAmount());
+        assertEquals(25, lastResponse.pendingAmount());
     }
 
     @Test
@@ -175,11 +174,11 @@ class SimpleOrderBookTest {
                 .timestamp(LocalDateTime.now())
                 .build();
 
-        OrderResponse response = book.submit(order);
+        Order response = book.submit(order);
 
         // same order returned on response
-        assertEquals(order.getAmount(), response.getAmount());
-        assertEquals(order.getPrice(), response.getPrice());
+        assertEquals(order.amount(), response.amount());
+        assertEquals(order.price(), response.price());
         assertEquals(4, book.getBuyQueue().size());
     }
 
@@ -197,11 +196,11 @@ class SimpleOrderBookTest {
                 .timestamp(LocalDateTime.now())
                 .build();
 
-        OrderResponse response = book.submit(order);
+        Order response = book.submit(order);
 
         // same order returned on response
-        assertEquals(order.getAmount(), response.getAmount());
-        assertEquals(order.getPrice(), response.getPrice());
+        assertEquals(order.amount(), response.amount());
+        assertEquals(order.price(), response.price());
         assertEquals(4, book.getBuyQueue().size());
     }
 

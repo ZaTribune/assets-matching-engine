@@ -6,7 +6,6 @@ import com.tribune.demo.ame.impl.SimpleMatchingEngine;
 import com.tribune.demo.ame.impl.SimpleOrderBook;
 import com.tribune.demo.ame.model.Order;
 import com.tribune.demo.ame.model.OrderDirection;
-import com.tribune.demo.ame.model.OrderResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -69,25 +68,25 @@ class SimpleMatchingEngineTest {
     @Test
     void findOrderById() {
         long id = 1L;
-        OrderResponse orderResponse = OrderResponse.builder()
+        Order orderResponse = Order.builder()
                 .id(id)
                 .asset("BTC")
                 .amount(10.0)
                 .price(100.0)
                 .build();
 
-        Map<Long, OrderResponse> archive = new HashMap<>();
+        Map<Long, Order> archive = new HashMap<>();
         archive.put(id, orderResponse);
 
         ReflectionTestUtils.setField(matchingEngine, "archive", archive);
 
 
-        OrderResponse result = matchingEngine.findOrderById(id);
+        Order result = matchingEngine.findOrderById(id);
         assertNotNull(result);
-        assertEquals(id, result.getId());
-        assertEquals("BTC", result.getAsset());
-        assertEquals(10.0, result.getAmount());
-        assertEquals(100.0, result.getPrice());
+        assertEquals(id, result.id());
+        assertEquals("BTC", result.asset());
+        assertEquals(10.0, result.amount());
+        assertEquals(100.0, result.price());
     }
 
     @ParameterizedTest
@@ -100,14 +99,14 @@ class SimpleMatchingEngineTest {
     void findLiveOrdersByAsset(String dir, int size, boolean error) {
 
 
-        OrderResponse order1 = OrderResponse.builder()
+        Order order1 = Order.builder()
                 .id(1L)
                 .asset("BTC")
                 .amount(5.0)
                 .price(300.0)
                 .direction(OrderDirection.SELL)
                 .build();
-        OrderResponse order2 = OrderResponse.builder()
+        Order order2 = Order.builder()
                 .id(2L)
                 .asset("BTC")
                 .amount(3.0)

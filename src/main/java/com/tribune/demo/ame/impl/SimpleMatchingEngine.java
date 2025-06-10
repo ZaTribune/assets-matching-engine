@@ -20,7 +20,7 @@ import java.util.stream.Stream;
  * <ol>
  * <li>A map of {@link SimpleOrderBook} instances, each identified by a unique asset name.</li>
  * <li>An {@link AtomicLong} counter to generate unique IDs for orders.</li>
- * <li>An archive of {@link OrderResponse} objects to keep track of processed orders.</li>
+ * <li>An archive of {@link Order} objects to keep track of processed orders.</li>
  * <li>An {@link OrderPublisher} to handle events related to order processing.</li>
  * </ol>
  */
@@ -33,9 +33,10 @@ public class SimpleMatchingEngine implements MatchingEngine, OrderSubscriber {
 
     private final Map<String, SimpleOrderBook> orderBooks = new HashMap<>();
 
-    private final Map<Long, OrderResponse> archive = new ConcurrentHashMap<>();
+    private final Map<Long, Order> archive = new ConcurrentHashMap<>();
 
     private final OrderPublisher orderPublisher;
+
 
     @Autowired
     public SimpleMatchingEngine(OrderPublisher orderPublisher) {
@@ -78,7 +79,7 @@ public class SimpleMatchingEngine implements MatchingEngine, OrderSubscriber {
     }
 
     @Override
-    public OrderResponse findOrderById(long id) {
+    public Order findOrderById(long id) {
         return archive.get(id);
     }
 
@@ -110,20 +111,21 @@ public class SimpleMatchingEngine implements MatchingEngine, OrderSubscriber {
     public void onEvent(OrderEvent event) {
         log.debug("Received an event: {}", event.getMessage());
         if (event.getType().equals(OrderEventType.SAVE_OR_UPDATE_ORDER)) {
-            OrderResponse o = (OrderResponse) event.getSource();
-            archive.put(o.getId(), o);
+            Order o = (Order) event.getSource();
+            archive.put(o.id(), o);
         } else if (event.getType().equals(OrderEventType.UPDATE_COUNTERPART)) {
             UpdateCounterpart uc = (UpdateCounterpart) event.getSource();
 
-            if (archive.containsKey(uc.getCounterPartId())) {
-                OrderResponse o = archive.get(uc.getCounterPartId());
+            if (archive.containsKey(uc.counterPartId())) {
+                Order o = archive.get(uc.counterPartId());
                 Trade trade = Trade.builder()
-                        .orderId(uc.getTriggerId())
-                        .price(uc.getCounterpartPrice())
-                        .amount(uc.getCounterpartAmount())
+                        .orderId(uc.triggerId())
+                        .price(uc.counterpartPrice())
+                        .amount(uc.counterpartAmount())
                         .build();
-                o.setPendingAmount(o.getAmount() - uc.getCounterpartAmount());
+                o = o.withPendingAmount(o.amount() - uc.counterpartAmount());
                 o.addTrade(trade);
+                archive.put(o.id(), o);
             }
         }
     }

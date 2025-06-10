@@ -42,12 +42,12 @@ public class SimpleOrderBook implements OrderBook{
 
 
     // I need the least selling prices to come first
-    private final Comparator<Order> comparator1 = Comparator.comparingDouble(Order::getPrice)//asc
-            .thenComparing(Order::getTimestamp);//asc
+    private final Comparator<Order> comparator1 = Comparator.comparingDouble(Order::price)//asc
+            .thenComparing(Order::timestamp);//asc
 
     // I need the highest buying prices to come first
-    private final Comparator<Order> comparator2 = Comparator.comparingDouble(Order::getPrice).reversed()//desc
-            .thenComparing(Order::getTimestamp).reversed();//desc
+    private final Comparator<Order> comparator2 = Comparator.comparingDouble(Order::price).reversed()//desc
+            .thenComparing(Order::timestamp).reversed();//desc
 
     // I used PriorityQueue with synchronized methods but then searched the web and found this one to be a better alternative
     @Getter
@@ -58,12 +58,12 @@ public class SimpleOrderBook implements OrderBook{
 
 
     @Override
-    public OrderResponse submit(Order order) {
-        if (!asset.equals(order.getAsset())) {
+    public Order submit(Order order) {
+        if (!asset.equals(order.asset())) {
             throw new IllegalArgumentException("This asset doesn't belong to this order book.");
         }
 
-        OrderResponse response = OrderDirection.SELL.equals(order.getDirection()) ?
+        Order response = OrderDirection.SELL.equals(order.direction()) ?
                 sell(order) :
                 buy(order);
 
@@ -72,42 +72,42 @@ public class SimpleOrderBook implements OrderBook{
     }
 
     @Override
-    public OrderResponse sell(Order order) {
+    public Order sell(Order order) {
         log.info("Adding order to SELL queue");
-        double pendingAmount = order.getAmount();
+        double pendingAmount = order.amount();
         List<Trade> trades = new ArrayList<>();
         if (!buyQueue.isEmpty()) {
             Order nextBuy = buyQueue.peek();
-            if (nextBuy.getPrice() < order.getPrice()) {
+            if (nextBuy.price() < order.price()) {
                 log.info("No suitable BUY orders found, adding to SELL queue");
                 sellQueue.add(order);
             } else {
-                pendingAmount = getPendingAmount(order, trades, nextBuy.getPrice() >= order.getPrice(), buyQueue);
+                pendingAmount = getPendingAmount(order, trades, nextBuy.price() >= order.price(), buyQueue);
             }
         } else {
             sellQueue.add(order);
         }
-        return createOrderResponse(order, trades, pendingAmount);
+        return order.withTrades(trades).withPendingAmount(pendingAmount);
     }
 
 
     @Override
-    public OrderResponse buy(Order order) {
+    public Order buy(Order order) {
         log.info("Adding order to BUY queue");
-        double pendingAmount = order.getAmount();
+        double pendingAmount = order.amount();
         List<Trade> trades = new ArrayList<>();
         if (!sellQueue.isEmpty()) {
             Order nextSell = sellQueue.peek();
-            if (nextSell.getPrice() > order.getPrice()) {
+            if (nextSell.price() > order.price()) {
                 log.info("No suitable SELL orders found, adding to BUY queue");
                 buyQueue.add(order);
             } else {
-                pendingAmount = getPendingAmount(order, trades, nextSell.getPrice() <= order.getPrice(), sellQueue);
+                pendingAmount = getPendingAmount(order, trades, nextSell.price() <= order.price(), sellQueue);
             }
         } else {
             buyQueue.add(order);
         }
-        return createOrderResponse(order, trades, pendingAmount);
+        return order.withTrades(trades).withPendingAmount(pendingAmount);
     }
 
     /**
@@ -120,28 +120,28 @@ public class SimpleOrderBook implements OrderBook{
      * @return The remaining pending amount after processing trades.
      **/
     private double getPendingAmount(Order order, List<Trade> trades, boolean condition, Queue<Order> otherQueue) {
-        double pendingAmount = order.getAmount();
+        double pendingAmount = order.amount();
         while (condition && pendingAmount > 0) {
 
             Order nextSell = otherQueue.poll();
             assert nextSell != null;//already peaked - false positive
-            double tradeAmount = nextSell.getAmount();
+            double tradeAmount = nextSell.amount();
 
             if (pendingAmount < tradeAmount) {
                 tradeAmount = pendingAmount;
-                nextSell.setAmount(nextSell.getAmount() - tradeAmount);
+                nextSell = nextSell.withAmount(nextSell.amount() - tradeAmount);
                 otherQueue.add(nextSell);// keep it case it's larger
             }
             Trade currentTrade = Trade.builder()
-                    .orderId(nextSell.getId())
-                    .price(nextSell.getPrice())
+                    .orderId(nextSell.id())
+                    .price(nextSell.price())
                     .amount(tradeAmount)
                     .build();
             UpdateCounterpart ucp = UpdateCounterpart.builder()
-                    .triggerId(order.getId())
-                    .counterPartId(nextSell.getId())
+                    .triggerId(order.id())
+                    .counterPartId(nextSell.id())
                     .counterpartAmount(tradeAmount)
-                    .counterpartPrice(order.getPrice())
+                    .counterpartPrice(order.price())
                     .build();
             updateCounterpart(ucp);
 
@@ -155,7 +155,7 @@ public class SimpleOrderBook implements OrderBook{
     /**
      * Notifies subscribers about Save/Update of an order.
      */
-    public void saveOrUpdateOrder(OrderResponse response) {
+    public void saveOrUpdateOrder(Order response) {
         OrderEvent event = new SimpleOrderEvent(response,
                 "Update the order",
                 OrderEventType.SAVE_OR_UPDATE_ORDER);
@@ -168,7 +168,7 @@ public class SimpleOrderBook implements OrderBook{
      * Notifies subscribers to Update the counterpart order in the archive.
      **/
     public void updateCounterpart(UpdateCounterpart updateCounterpart) {
-        long triggerId = updateCounterpart.getTriggerId();
+        long triggerId = updateCounterpart.triggerId();
         log.info("Updating archive for order {}", triggerId);
 
         OrderEvent event = new SimpleOrderEvent(updateCounterpart,

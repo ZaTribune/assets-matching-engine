@@ -2,7 +2,6 @@ package com.tribune.demo.ame.domain;
 
 
 import com.tribune.demo.ame.model.Order;
-import com.tribune.demo.ame.model.OrderResponse;
 
 import java.util.List;
 
@@ -51,7 +50,7 @@ public interface MatchingEngine {
      * @param id The ID of the order to find.
      * @return The Order related to the provided ID.
      */
-    OrderResponse findOrderById(long id);
+    Order findOrderById(long id);
 
     /**
      * Finds all live orders by a given asset.

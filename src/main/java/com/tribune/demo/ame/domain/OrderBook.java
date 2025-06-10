@@ -3,8 +3,6 @@ package com.tribune.demo.ame.domain;
 
 import com.tribune.demo.ame.model.*;
 
-import java.time.LocalDateTime;
-import java.util.List;
 
 
 /**
@@ -24,7 +22,7 @@ public interface OrderBook {
      *
      * @param order The order to be added.
      **/
-    OrderResponse submit(Order order);
+    Order submit(Order order);
 
     /**
      * Processes a SELL order by checking against the BUY queue.
@@ -32,7 +30,7 @@ public interface OrderBook {
      * @param order The SELL order to be processed.
      * @return OrderResponse containing the order details, trades made, and any pending amount.
      */
-    OrderResponse sell(Order order);
+    Order sell(Order order);
 
     /**
      * Processes a BUY order by checking against the BUY queue.
@@ -40,14 +38,14 @@ public interface OrderBook {
      * @param order The BUY order to be processed.
      * @return OrderResponse containing the order details, trades made, and any pending amount.
      */
-    OrderResponse buy(Order order);
+    Order buy(Order order);
 
     /**
      * Saves/Updates an order.
      *
      * @param response The OrderResponse containing the updated order details.
      */
-    void saveOrUpdateOrder(OrderResponse response);
+    void saveOrUpdateOrder(Order response);
 
 
     /**
@@ -55,22 +53,4 @@ public interface OrderBook {
      * @param updateCounterpart the details of the order to be updated.
      **/
     void updateCounterpart(UpdateCounterpart updateCounterpart);
-
-
-    /**
-     * Creates an OrderResponse object from the given order, trades, and pending amount.
-     **/
-    default OrderResponse createOrderResponse(Order order, List<Trade> trades, double pendingAmount) {
-        return OrderResponse.builder()
-                .id(order.getId())
-                .price(order.getPrice())
-                .asset(order.getAsset())
-                .direction(order.getDirection())
-                .timestamp(LocalDateTime.now())
-                .amount(order.getAmount())
-                .pendingAmount(pendingAmount)
-                .trades(trades)
-                .build();
-    }
-
 }
