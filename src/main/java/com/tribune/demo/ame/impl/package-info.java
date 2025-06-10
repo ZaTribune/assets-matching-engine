@@ -1,5 +1,6 @@
 /**
- * This package contains an implementation of the AME (Assets Matching Engine) system.
- * It includes classes that achieves the behavior in a simple manner by persisting in-memory and without reliability on external systems.
+ * This package contains a lightweight, in-memory implementation of the Assets Matching Engine (AME) system.
+ * It provides core functionality for managing order books, matching buy/sell orders,
+ * and publishing events without relying on external systems or persistent storage.
  */
 package com.tribune.demo.ame.impl;

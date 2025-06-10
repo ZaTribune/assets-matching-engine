@@ -2,9 +2,9 @@ package com.tribune.demo.ame.impl;
 
 
 import com.tribune.demo.ame.domain.OrderBook;
+import com.tribune.demo.ame.domain.OrderEvent;
 import com.tribune.demo.ame.domain.OrderPublisher;
 import com.tribune.demo.ame.domain.OrderEventType;
-import com.tribune.demo.ame.domain.OrderEvent;
 import com.tribune.demo.ame.model.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -156,10 +156,9 @@ public class SimpleOrderBook implements OrderBook{
      * Notifies subscribers about Save/Update of an order.
      */
     public void saveOrUpdateOrder(OrderResponse response) {
-        OrderEvent event = new OrderEvent(response,
+        OrderEvent event = new SimpleOrderEvent(response,
                 "Update the order",
                 OrderEventType.SAVE_OR_UPDATE_ORDER);
-        event.setData(response.getId());
 
         orderPublisher.publish(event);
     }
@@ -172,10 +171,9 @@ public class SimpleOrderBook implements OrderBook{
         long triggerId = updateCounterpart.getTriggerId();
         log.info("Updating archive for order {}", triggerId);
 
-        OrderEvent event = new OrderEvent(updateCounterpart,
+        OrderEvent event = new SimpleOrderEvent(updateCounterpart,
                 "Update the counterpart",
                 OrderEventType.UPDATE_COUNTERPART);
-        event.setData(triggerId);
 
         orderPublisher.publish(event);
     }
