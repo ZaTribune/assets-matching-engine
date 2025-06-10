@@ -1,37 +1,43 @@
-package com.tribune.demo.ame.data;
+package com.tribune.demo.ame.impl;
 
 
-import com.tribune.demo.ame.event.EventBus;
-import com.tribune.demo.ame.event.EventType;
-import com.tribune.demo.ame.event.OrderEvent;
+import com.tribune.demo.ame.domain.OrderBook;
+import com.tribune.demo.ame.domain.OrderPublisher;
+import com.tribune.demo.ame.domain.OrderEventType;
+import com.tribune.demo.ame.domain.OrderEvent;
 import com.tribune.demo.ame.model.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.PriorityBlockingQueue;
-import java.util.concurrent.atomic.AtomicLong;
 
-
+/**
+ * This class is a simple implementation of {@link OrderBook} for managing buy and sell orders.
+ * It uses the following:
+ * <ol>
+ * <li>A {@link PriorityBlockingQueue} for `sell` orders, sorted by price (ascending) and timestamp (ascending).</li>
+ * <li>A {@link PriorityBlockingQueue} for `buy` orders, sorted by price (descending) and timestamp (descending).</li>
+ * <li>An {@link OrderPublisher} to handle events related to order processing.</li>
+ * </ol>
+ *
+ */
 @Slf4j
-public class OrderBook {
+public class SimpleOrderBook implements OrderBook{
 
-    private final EventBus eventBus;
-    private final AtomicLong counter;
+    private final OrderPublisher orderPublisher;
 
     @Getter
     @Setter
     private String asset;
 
-    public OrderBook(String name, EventBus eventBus, AtomicLong counter) {
+    public SimpleOrderBook(String name, OrderPublisher orderPublisher) {
         this.asset = name;
-        this.eventBus = eventBus;
-        this.counter = counter;
+        this.orderPublisher = orderPublisher;
     }
 
 
@@ -50,36 +56,23 @@ public class OrderBook {
     @Getter
     private final Queue<Order> buyQueue = new PriorityBlockingQueue<>(1, comparator2);
 
-    /**
-     * Adds an order to the order book.
-     * If the order is a SELL order, it will be processed against the BUY queue.
-     * If the order is a BUY order, it will be processed against the SELL queue.
-     * The method will create an {@code OrderResponse} containing the order details,
-     * trades made, and any pending amount.
-     *
-     * @param order The order to be added.
-     **/
-    public OrderResponse addOrder(Order order) {
+
+    @Override
+    public OrderResponse submit(Order order) {
         if (!asset.equals(order.getAsset())) {
             throw new IllegalArgumentException("This asset doesn't belong to this order book.");
         }
-        order.setId(counter.getAndIncrement());
 
         OrderResponse response = OrderDirection.SELL.equals(order.getDirection()) ?
-                processSell(order) :
-                processBuy(order);
+                sell(order) :
+                buy(order);
 
         saveOrUpdateOrder(response);
         return response;
     }
 
-    /**
-     * Processes a SELL order by checking against the BUY queue.
-     *
-     * @param order The SELL order to be processed.
-     * @return OrderResponse containing the order details, trades made, and any pending amount.
-     */
-    private OrderResponse processSell(Order order) {
+    @Override
+    public OrderResponse sell(Order order) {
         log.info("Adding order to SELL queue");
         double pendingAmount = order.getAmount();
         List<Trade> trades = new ArrayList<>();
@@ -97,13 +90,9 @@ public class OrderBook {
         return createOrderResponse(order, trades, pendingAmount);
     }
 
-    /**
-     * Processes a BUY order by checking against the BUY queue.
-     *
-     * @param order The BUY order to be processed.
-     * @return OrderResponse containing the order details, trades made, and any pending amount.
-     */
-    private OrderResponse processBuy(Order order) {
+
+    @Override
+    public OrderResponse buy(Order order) {
         log.info("Adding order to BUY queue");
         double pendingAmount = order.getAmount();
         List<Trade> trades = new ArrayList<>();
@@ -148,7 +137,13 @@ public class OrderBook {
                     .price(nextSell.getPrice())
                     .amount(tradeAmount)
                     .build();
-            updateCounterpart(order.getId(), nextSell.getId(), tradeAmount, order.getPrice());
+            UpdateCounterpart ucp = UpdateCounterpart.builder()
+                    .triggerId(order.getId())
+                    .counterPartId(nextSell.getId())
+                    .counterpartAmount(tradeAmount)
+                    .counterpartPrice(order.getPrice())
+                    .build();
+            updateCounterpart(ucp);
 
             trades.add(currentTrade);
 
@@ -158,60 +153,31 @@ public class OrderBook {
     }
 
     /**
-     * Creates an OrderResponse object from the given order, trades, and pending amount.
-     **/
-    OrderResponse createOrderResponse(Order order, List<Trade> trades, double pendingAmount) {
-        return OrderResponse.builder()
-                .id(order.getId())
-                .price(order.getPrice())
-                .asset(order.getAsset())
-                .direction(order.getDirection())
-                .timestamp(LocalDateTime.now())
-                .amount(order.getAmount())
-                .pendingAmount(pendingAmount)
-                .trades(trades)
-                .build();
-    }
-
-    /**
-     * Updates the order in the event bus.
-     * This method creates an OrderEvent with the given response and publishes it to the event bus.
-     *
-     * @param response The OrderResponse containing the updated order details.
+     * Notifies subscribers about Save/Update of an order.
      */
-    void saveOrUpdateOrder(OrderResponse response) {
+    public void saveOrUpdateOrder(OrderResponse response) {
         OrderEvent event = new OrderEvent(response,
                 "Update the order",
-                EventType.SAVE_OR_UPDATE_ORDER);
+                OrderEventType.SAVE_OR_UPDATE_ORDER);
         event.setData(response.getId());
 
-        eventBus.publish(event);
+        orderPublisher.publish(event);
     }
 
 
     /**
-     * Updates the counterpart order in the archive.
-     * This method creates an UpdateCounterpart object with the given details and publishes an OrderEvent to the event bus.
-     *
-     * @param triggerId         The ID of the order that triggered the update.
-     * @param counterPartId     The ID of the counterpart order being updated.
-     * @param counterpartAmount The amount of the counterpart order.
-     * @param counterpartPrice  The price of the counterpart order.
+     * Notifies subscribers to Update the counterpart order in the archive.
      **/
-    private void updateCounterpart(Long triggerId, Long counterPartId, double counterpartAmount, double counterpartPrice) {
-        log.info("Updating archive for order {}", counterPartId);
-        UpdateCounterpart updateCounterpart = UpdateCounterpart.builder()
-                .triggerId(triggerId)
-                .counterPartId(counterPartId)
-                .counterpartAmount(counterpartAmount)
-                .counterpartPrice(counterpartPrice)
-                .build();
+    public void updateCounterpart(UpdateCounterpart updateCounterpart) {
+        long triggerId = updateCounterpart.getTriggerId();
+        log.info("Updating archive for order {}", triggerId);
+
         OrderEvent event = new OrderEvent(updateCounterpart,
                 "Update the counterpart",
-                EventType.UPDATE_COUNTERPART);
+                OrderEventType.UPDATE_COUNTERPART);
         event.setData(triggerId);
 
-        eventBus.publish(event);
+        orderPublisher.publish(event);
     }
 
 }

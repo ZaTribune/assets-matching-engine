@@ -1,7 +1,9 @@
 package com.tribune.demo.ame.data;
 
-import com.tribune.demo.ame.event.EventBus;
-import com.tribune.demo.ame.event.EventBusImpl;
+import com.tribune.demo.ame.domain.OrderPublisher;
+import com.tribune.demo.ame.impl.SimpleOrderPublisher;
+import com.tribune.demo.ame.impl.SimpleMatchingEngine;
+import com.tribune.demo.ame.impl.SimpleOrderBook;
 import com.tribune.demo.ame.model.Order;
 import com.tribune.demo.ame.model.OrderDirection;
 import com.tribune.demo.ame.model.OrderResponse;
@@ -18,23 +20,23 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 
 
-class MatchingEngineTest {
+class SimpleMatchingEngineTest {
 
-    MatchingEngine matchingEngine;
+    SimpleMatchingEngine matchingEngine;
 
 
     @BeforeEach
     public void setUp() {
 
-        EventBus eventBus = new EventBusImpl();
-        matchingEngine = new MatchingEngine(eventBus);
+        OrderPublisher eventBus = new SimpleOrderPublisher();
+        matchingEngine = new SimpleMatchingEngine(eventBus);
     }
 
     @Test
     void newOrderBook() {
 
         String bookName = "BTC";
-        OrderBook result = matchingEngine.newOrderBook(bookName);
+        SimpleOrderBook result = matchingEngine.newOrderBook(bookName);
         assertNotNull(result);
         assertEquals(bookName, result.getAsset());
     }
@@ -42,10 +44,10 @@ class MatchingEngineTest {
     @Test
     void getOrderBook() {
         String bookName = "BTC";
-        OrderBook orderBook = matchingEngine.newOrderBook(bookName);
+        SimpleOrderBook orderBook = matchingEngine.newOrderBook(bookName);
         assertNotNull(orderBook);
 
-        OrderBook result = matchingEngine.getOrderBook(bookName);
+        SimpleOrderBook result = matchingEngine.getOrderBook(bookName);
         assertNotNull(result);
         assertEquals(bookName, result.getAsset());
     }
@@ -53,7 +55,7 @@ class MatchingEngineTest {
     @Test
     void deleteOrderBook() {
         String bookName = "LTC";
-        OrderBook orderBook = matchingEngine.newOrderBook(bookName);
+        SimpleOrderBook orderBook = matchingEngine.newOrderBook(bookName);
         assertNotNull(orderBook);
 
         boolean deleted = matchingEngine.deleteOrderBook(bookName);
@@ -113,9 +115,9 @@ class MatchingEngineTest {
                 .direction(OrderDirection.BUY)
                 .build();
 
-        OrderBook book = matchingEngine.getOrderBook("BTC");
-        book.addOrder(order1);
-        book.addOrder(order2);
+        SimpleOrderBook book = matchingEngine.getOrderBook("BTC");
+        book.submit(order1);
+        book.submit(order2);
 
         String direction = "null".equals(dir) ? null : dir;
         if (error) {

@@ -1,7 +1,10 @@
 package com.tribune.demo.ame.data;
 
-import com.tribune.demo.ame.event.EventBus;
-import com.tribune.demo.ame.event.EventBusImpl;
+import com.tribune.demo.ame.domain.MatchingEngine;
+import com.tribune.demo.ame.domain.OrderPublisher;
+import com.tribune.demo.ame.impl.SimpleOrderPublisher;
+import com.tribune.demo.ame.impl.SimpleMatchingEngine;
+import com.tribune.demo.ame.impl.SimpleOrderBook;
 import com.tribune.demo.ame.model.Order;
 import com.tribune.demo.ame.model.OrderDirection;
 import com.tribune.demo.ame.model.OrderResponse;
@@ -12,24 +15,24 @@ import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class OrderBookTest {
+class SimpleOrderBookTest {
 
     MatchingEngine engine;
     DevBootstrap bootstrap;
-    OrderBook book;
+    SimpleOrderBook book;
 
     @BeforeEach
     void setUp() {
-        EventBus eventBus = new EventBusImpl();
-        engine = new MatchingEngine(eventBus);
+        OrderPublisher eventBus = new SimpleOrderPublisher();
+        engine = new SimpleMatchingEngine(eventBus);
         bootstrap = new DevBootstrap(engine);
         bootstrap.init();
-        book = engine.getOrderBook("BTC");
+        book = (SimpleOrderBook) engine.getOrderBook("BTC");
     }
 
     @Test
     void testDataInitialized() {
-        OrderBook book = engine.getOrderBook("BTC");
+        SimpleOrderBook book = (SimpleOrderBook) engine.getOrderBook("BTC");
         assertNotNull(book);
 
         assertEquals(3, book.getSellQueue().size());
@@ -39,6 +42,7 @@ class OrderBookTest {
     @Test
     void addSellOrder_whenSuccessful() {
         Order order = Order.builder()
+                .id(1L)
                 .asset("BTC")
                 .price(10.0)
                 .amount(55.0)
@@ -46,7 +50,7 @@ class OrderBookTest {
                 .timestamp(LocalDateTime.now())
                 .build();
 
-        OrderResponse response = book.addOrder(order);
+        OrderResponse response = book.submit(order);
 
         assertNotNull(response);
         assertNotNull(response.getTrades());
@@ -76,10 +80,11 @@ class OrderBookTest {
     void addSellOrder_whenBuyQueueIsEmpty() {
 
         //clear the buy queue
-        book = engine.getOrderBook("BTC");
+
         book.getBuyQueue().clear();
 
         Order order = Order.builder()
+                .id(1L)
                 .asset("BTC")
                 .price(10.0)
                 .amount(55.0)
@@ -87,7 +92,7 @@ class OrderBookTest {
                 .timestamp(LocalDateTime.now())
                 .build();
 
-        OrderResponse response = book.addOrder(order);
+        OrderResponse response = book.submit(order);
 
         // same order returned on response
         assertEquals(order.getAmount(), response.getAmount());
@@ -99,8 +104,8 @@ class OrderBookTest {
     void addSellOrder_whenNoSuitablePrice() {
 
         //clear the buy queue
-        book = engine.getOrderBook("BTC");
         Order order = Order.builder()
+                .id(1L)
                 .asset("BTC")
                 .price(15)
                 .amount(55.0)
@@ -108,7 +113,7 @@ class OrderBookTest {
                 .timestamp(LocalDateTime.now())
                 .build();
 
-        OrderResponse response = book.addOrder(order);
+        OrderResponse response = book.submit(order);
 
         // same order returned on response
         assertEquals(order.getAmount(), response.getAmount());
@@ -119,6 +124,7 @@ class OrderBookTest {
     @Test
     void addBuyOrder_whenSuccessful() {
         Order order = Order.builder()
+                .id(1L)
                 .asset("BTC")
                 .price(10.06)
                 .amount(55.0)
@@ -126,7 +132,7 @@ class OrderBookTest {
                 .timestamp(LocalDateTime.now())
                 .build();
 
-        OrderResponse response = book.addOrder(order);
+        OrderResponse response = book.submit(order);
 
         assertNotNull(response);
         assertNotNull(response.getTrades());
@@ -157,10 +163,11 @@ class OrderBookTest {
     void addBuyOrder_whenSellQueueIsEmpty() {
 
         //clear the buy queue
-        book = engine.getOrderBook("BTC");
+
         book.getSellQueue().clear();
 
         Order order = Order.builder()
+                .id(1L)
                 .asset("BTC")
                 .price(10.0)
                 .amount(55.0)
@@ -168,7 +175,7 @@ class OrderBookTest {
                 .timestamp(LocalDateTime.now())
                 .build();
 
-        OrderResponse response = book.addOrder(order);
+        OrderResponse response = book.submit(order);
 
         // same order returned on response
         assertEquals(order.getAmount(), response.getAmount());
@@ -180,8 +187,9 @@ class OrderBookTest {
     void addBuyOrder_whenNoSuitablePrice() {
 
         //clear the buy queue
-        book = engine.getOrderBook("BTC");
+
         Order order = Order.builder()
+                .id(1L)
                 .asset("BTC")
                 .price(5)
                 .amount(55.0)
@@ -189,7 +197,7 @@ class OrderBookTest {
                 .timestamp(LocalDateTime.now())
                 .build();
 
-        OrderResponse response = book.addOrder(order);
+        OrderResponse response = book.submit(order);
 
         // same order returned on response
         assertEquals(order.getAmount(), response.getAmount());
@@ -199,16 +207,16 @@ class OrderBookTest {
 
 
     @Test
-    void addOrder_whenAssetIsInvalid(){
+    void submit_whenAssetIsInvalid(){
         Order order = Order.builder()
                 .asset("fdfd")
                 .price(10.06)
                 .amount(55.0)
                 .direction(OrderDirection.BUY)
                 .build();
-        OrderBook book = engine.getOrderBook("BTC");
+        SimpleOrderBook book = (SimpleOrderBook) engine.getOrderBook("BTC");
 
-        IllegalArgumentException e = assertThrows(IllegalArgumentException.class,()->book.addOrder(order)) ;
+        IllegalArgumentException e = assertThrows(IllegalArgumentException.class,()->book.submit(order)) ;
         assertEquals("This asset doesn't belong to this order book.", e.getMessage());
     }
 }

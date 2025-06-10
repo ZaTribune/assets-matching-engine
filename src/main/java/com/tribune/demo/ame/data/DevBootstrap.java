@@ -2,6 +2,8 @@ package com.tribune.demo.ame.data;
 
 
 
+import com.tribune.demo.ame.domain.MatchingEngine;
+import com.tribune.demo.ame.impl.SimpleOrderBook;
 import com.tribune.demo.ame.model.Order;
 import com.tribune.demo.ame.model.OrderDirection;
 import com.tribune.demo.ame.model.OrderResponse;
@@ -14,7 +16,6 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Queue;
-import java.util.concurrent.atomic.AtomicLong;
 
 
 @Slf4j
@@ -29,9 +30,7 @@ public class DevBootstrap {
     @PostConstruct
     public void init() {
         log.info("Running on local profile, initializing data...");
-        OrderBook orderBook = matchingEngine.getOrderBook("BTC");
-
-        AtomicLong counter = matchingEngine.getCounter();
+        SimpleOrderBook orderBook = (SimpleOrderBook) matchingEngine.getOrderBook("BTC");
 
         Queue<Order> sellQueue = orderBook.getSellQueue();
         Queue<Order> buyQueue = orderBook.getBuyQueue();
@@ -41,7 +40,7 @@ public class DevBootstrap {
 
         Order o1 = Order.builder()
                 .asset("BTC")
-                .id(counter.getAndIncrement())
+                .id(matchingEngine.getNextOrderId())
                 .direction(OrderDirection.SELL)
                 .timestamp(now)
                 .amount(20)
@@ -52,7 +51,7 @@ public class DevBootstrap {
         orderBook.saveOrUpdateOrder(response);
         Order o2 = Order.builder()
                 .asset("BTC")
-                .id(counter.getAndIncrement())
+                .id(matchingEngine.getNextOrderId())
                 .direction(OrderDirection.SELL)
                 .timestamp(now.plusMinutes(2))
                 .amount(20)
@@ -63,7 +62,7 @@ public class DevBootstrap {
         orderBook.saveOrUpdateOrder(response);
         Order o3 = Order.builder()
                 .asset("BTC")
-                .id(counter.getAndIncrement())
+                .id(matchingEngine.getNextOrderId())
                 .direction(OrderDirection.SELL)
                 .timestamp(now.plusMinutes(3))
                 .amount(40)
@@ -74,7 +73,7 @@ public class DevBootstrap {
         orderBook.saveOrUpdateOrder(response);
         Order o4 = Order.builder()
                 .asset("BTC")
-                .id(counter.getAndIncrement())
+                .id(matchingEngine.getNextOrderId())
                 .direction(OrderDirection.BUY)
                 .timestamp(now.plusMinutes(5))
                 .amount(20)
@@ -85,7 +84,7 @@ public class DevBootstrap {
         orderBook.saveOrUpdateOrder(response);
         Order o5 = Order.builder()
                 .asset("BTC")
-                .id(counter.getAndIncrement())
+                .id(matchingEngine.getNextOrderId())
                 .direction(OrderDirection.BUY)
                 .timestamp(now.plusMinutes(6))
                 .amount(40)
@@ -96,7 +95,7 @@ public class DevBootstrap {
         orderBook.saveOrUpdateOrder(response);
         Order o6 = Order.builder()
                 .asset("BTC")
-                .id(counter.getAndIncrement())
+                .id(matchingEngine.getNextOrderId())
                 .direction(OrderDirection.BUY)
                 .timestamp(now.plusMinutes(10))
                 .amount(40)

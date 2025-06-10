@@ -1,8 +1,8 @@
 package com.tribune.demo.ame.controller;
 
 
-import com.tribune.demo.ame.data.MatchingEngine;
-import com.tribune.demo.ame.data.OrderBook;
+import com.tribune.demo.ame.domain.MatchingEngine;
+import com.tribune.demo.ame.domain.OrderBook;
 import com.tribune.demo.ame.model.Order;
 import com.tribune.demo.ame.model.OrderResponse;
 import jakarta.validation.Valid;
@@ -25,7 +25,8 @@ public class OrderController {
     public OrderResponse addOrder(@Valid @RequestBody Order order) {
         log.info("Adding order - asset: {}", order.getAsset());
         OrderBook orderBook = matchingEngine.getOrderBook(order.getAsset());
-        return orderBook.addOrder(order);
+        order.setId(matchingEngine.getNextOrderId());
+        return orderBook.submit(order);
     }
 
     @GetMapping("/{id}")

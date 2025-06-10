@@ -1,4 +1,4 @@
-package com.tribune.demo.ame.event;
+package com.tribune.demo.ame.domain;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -12,12 +12,12 @@ import org.springframework.context.ApplicationEvent;
 public class OrderEvent extends ApplicationEvent {
 
     private String message;
-    private EventType eventType;
+    private OrderEventType type;
     private Object data;
 
-    public OrderEvent(Object source, String message, EventType eventType) {
+    public OrderEvent(Object source, String message, OrderEventType type) {
         super(source);
         this.message = message;
-        this.eventType = eventType;
+        this.type = type;
     }
 }

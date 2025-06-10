@@ -2,9 +2,9 @@ package com.tribune.demo.ame.controller;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.tribune.demo.ame.data.MatchingEngine;
-import com.tribune.demo.ame.data.OrderBook;
-import com.tribune.demo.ame.event.EventBusImpl;
+import com.tribune.demo.ame.impl.SimpleMatchingEngine;
+import com.tribune.demo.ame.impl.SimpleOrderBook;
+import com.tribune.demo.ame.impl.SimpleOrderPublisher;
 import com.tribune.demo.ame.model.Order;
 import com.tribune.demo.ame.model.OrderDirection;
 import com.tribune.demo.ame.model.OrderResponse;
@@ -19,7 +19,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -39,20 +38,20 @@ class OrderControllerTest {
     MockMvc mockMvc;
 
     @MockitoBean
-    MatchingEngine matchingEngine;
+    SimpleMatchingEngine matchingEngine;
 
     @MockitoBean
-    EventBusImpl eventBus;
+    SimpleOrderPublisher eventBus;
 
 
 
     ObjectMapper objectMapper = new ObjectMapper();
 
-    OrderBook orderBook;
+    SimpleOrderBook orderBook;
 
     @BeforeEach
     void init(){
-         orderBook = new OrderBook("BTC", eventBus, new AtomicLong());
+         orderBook = new SimpleOrderBook("BTC", eventBus);
     }
 
 
