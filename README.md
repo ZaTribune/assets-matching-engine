@@ -387,3 +387,7 @@ GET /orders/3
 
   </div>
 </div>
+
+### Acknowledgment
+I would like to express my gratitude to [Baraka](https://getbaraka.com/en/) for providing this take-home assignment as part of the interview process.  
+This task allowed me to expand my knowledge practically with a task relevant to investing.
